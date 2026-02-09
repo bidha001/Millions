@@ -30,4 +30,8 @@ public class Stock {
     public BigDecimal getSalesPrice() {
         return prices.get(prices.size() - 1);
     }
+
+    public void addNewSalesPrice(BigDecimal newPrice) {
+        prices.add(newPrice);
+    }
 }
