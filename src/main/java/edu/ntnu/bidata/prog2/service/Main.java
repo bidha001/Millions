@@ -1,4 +1,4 @@
-package edu.ntnu.bidata.prog2;
+package edu.ntnu.bidata.prog2.service;
 
 public class Main {
     public static void main(String[] args) {
