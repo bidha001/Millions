@@ -19,18 +19,34 @@ public class Stock {
         this.prices.add(initialPrice);
     }
 
+    /**
+     *
+     * @return
+     */
     public String getCompany() {
         return company;
     }
 
+    /**
+     *
+     * @return
+     */
     public String getSymbol() {
         return symbol;
     }
 
+    /**
+     *
+     * @return
+     */
     public BigDecimal getSalesPrice() {
         return prices.get(prices.size() - 1);
     }
 
+    /**
+     *
+     * @param newPrice
+     */
     public void addNewSalesPrice(BigDecimal newPrice) {
         prices.add(newPrice);
     }
