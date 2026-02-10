@@ -5,13 +5,13 @@ import java.math.BigDecimal;
 public class Player {
     private final String name;
     private final BigDecimal startingMoney;
-    private BigDecimal Money;
+    private BigDecimal money;
     private final Portfolio portfolio;
 
     public Player(String name, BigDecimal startingMoney, Portfolio portfolio) {
         this.name = name;
         this.startingMoney = startingMoney;
-        this.Money = startingMoney;
+        this.money = startingMoney;
         this.portfolio = new Portfolio();
     }
 
@@ -24,11 +24,11 @@ public class Player {
     }
 
     public BigDecimal getMoney() {
-        return Money;
+        return money;
     }
 
     public void setMoney(BigDecimal money) {
-        Money = money;
+        this.money = money;
     }
 
     public Portfolio getPortfolio() {

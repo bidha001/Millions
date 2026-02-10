@@ -4,6 +4,7 @@ import edu.ntnu.bidata.prog2.model.Share;
 
 import java.math.BigDecimal;
 
+
 public class PurchaseCalculator implements TransactionCalculator {
     private final Share share;
 
@@ -13,21 +14,23 @@ public class PurchaseCalculator implements TransactionCalculator {
 
     @Override
     public BigDecimal calculateGross() {
-        return null;
+        return share.getPurchasePrice().multiply(share.getQuantity());
     }
 
     @Override
     public BigDecimal calculateCommission() {
-        return null;
+        return calculateGross().multiply(new BigDecimal("0.005"));
     }
 
     @Override
     public BigDecimal calculateTax() {
-        return null;
+        return BigDecimal.ZERO;
     }
 
     @Override
     public BigDecimal calculateTotal() {
-        return null;
+        return calculateGross()
+                .add(calculateCommission())
+                .add(calculateTax());
     }
 }

@@ -1,6 +1,9 @@
 package edu.ntnu.bidata.prog2.market;
 
+import edu.ntnu.bidata.prog2.model.Player;
+import edu.ntnu.bidata.prog2.model.Share;
 import edu.ntnu.bidata.prog2.model.Stock;
+import edu.ntnu.bidata.prog2.transaction.TransactionArchive;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,5 +46,13 @@ public class Exchange {
 
     public void advance(){
         week++;
+    }
+
+    public void buy(Player player, Share share) {
+        //later
+    }
+
+    public void sell(Player player, Share share) {
+        //later
     }
 }

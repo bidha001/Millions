@@ -1,6 +1,7 @@
 package edu.ntnu.bidata.prog2.transaction;
 
 import edu.ntnu.bidata.prog2.calculator.PurchaseCalculator;
+import edu.ntnu.bidata.prog2.model.Player;
 import edu.ntnu.bidata.prog2.model.Share;
 
 public class Purchase extends Transaction {
@@ -9,7 +10,15 @@ public class Purchase extends Transaction {
     }
 
     @Override
-    public void commit() {
-    // to do: need to implement the commit logic
+    public void commit(Player player, TransactionArchive archive) {
+        if(committed){
+            return;
+        }
+        player.setMoney(
+                player.getMoney().subtract(calculator.calculateTotal())
+        );
+        player.getPortfolio().addShare(share);
+        committed = true;
+        archive.addTransaction(this);
     }
 }

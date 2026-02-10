@@ -1,6 +1,7 @@
 package edu.ntnu.bidata.prog2.transaction;
 
 import edu.ntnu.bidata.prog2.calculator.TransactionCalculator;
+import edu.ntnu.bidata.prog2.model.Player;
 import edu.ntnu.bidata.prog2.model.Share;
 
 public abstract class Transaction {
@@ -16,5 +17,5 @@ public abstract class Transaction {
         this.committed = false;
     }
 
-    public abstract void commit();
+    public abstract void commit(Player player, TransactionArchive archive);
 }

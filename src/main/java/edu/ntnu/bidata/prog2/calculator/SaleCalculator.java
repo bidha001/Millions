@@ -12,22 +12,32 @@ public class SaleCalculator implements TransactionCalculator {
     }
 
     @Override
-    public BigDecimal calculateGross() {
-        return null;
+    public BigDecimal calculateGross() { //gross = sales price * quantity
+        return share.getStock()
+                .getSalesPrice()
+                .multiply(share.getQuantity());
     }
 
     @Override
-    public BigDecimal calculateCommission() {
-        return null;
+    public BigDecimal calculateCommission() { //commission = gross * 1%
+        return calculateGross().multiply(new BigDecimal("0.01"));
     }
 
     @Override
-    public BigDecimal calculateTax() {
-        return null;
+    public BigDecimal calculateTax() { //profit = gross - commission - (purchase price * quantity)
+        BigDecimal purchaseCost=
+                share .getPurchasePrice().multiply(share.getQuantity());
+
+        BigDecimal profit =
+                calculateGross().subtract(calculateCommission()).subtract(purchaseCost);
+
+        return profit.multiply(new BigDecimal("0.30"));
     }
 
     @Override
-    public BigDecimal calculateTotal() {
-        return null;
+    public BigDecimal calculateTotal() { //total = gross - commission - tax
+        return calculateGross()
+                .subtract(calculateCommission())
+                .subtract(calculateTax());
     }
 }
