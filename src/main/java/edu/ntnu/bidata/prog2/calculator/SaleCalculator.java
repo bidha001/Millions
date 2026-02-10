@@ -1,4 +1,33 @@
 package edu.ntnu.bidata.prog2.calculator;
 
-public class SaleCalculator {
+import edu.ntnu.bidata.prog2.model.Share;
+
+import java.math.BigDecimal;
+
+public class SaleCalculator implements TransactionCalculator {
+    private final Share share;
+
+    public SaleCalculator(Share share) {
+        this.share = share;
+    }
+
+    @Override
+    public BigDecimal calculateGross() {
+        return null;
+    }
+
+    @Override
+    public BigDecimal calculateCommission() {
+        return null;
+    }
+
+    @Override
+    public BigDecimal calculateTax() {
+        return null;
+    }
+
+    @Override
+    public BigDecimal calculateTotal() {
+        return null;
+    }
 }
