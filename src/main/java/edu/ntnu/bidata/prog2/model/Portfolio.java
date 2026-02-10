@@ -1,12 +1,13 @@
 package edu.ntnu.bidata.prog2.model;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Portfolio {
     private final List<Share> shares;
 
     public Portfolio() {
-        this.shares = shares;
+        this.shares = new ArrayList<>();
     }
 
     public List<Share> getShares() {

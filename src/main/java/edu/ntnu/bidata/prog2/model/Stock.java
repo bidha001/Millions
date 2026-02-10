@@ -1,6 +1,7 @@
 package edu.ntnu.bidata.prog2.model;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -15,7 +16,7 @@ public class Stock {
     public Stock(String company, String symbol, BigDecimal initialPrice) {
         this.company = company;
         this.symbol = symbol;
-        this.prices = new java.util.ArrayList<>();
+        this.prices = new ArrayList<>();
         this.prices.add(initialPrice);
     }
 
