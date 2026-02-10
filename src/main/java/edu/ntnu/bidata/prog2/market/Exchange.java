@@ -40,4 +40,8 @@ public class Exchange {
         }
         return result;
     }
+
+    public void advance(){
+        week++;
+    }
 }
