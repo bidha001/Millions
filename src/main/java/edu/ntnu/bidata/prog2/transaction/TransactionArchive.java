@@ -18,4 +18,7 @@ public class TransactionArchive {
      public List<Transaction> getTransactions() {
         return transactions;
     }
+
+    // check side 7, there is alot to do:
+    // protected vs public.
 }

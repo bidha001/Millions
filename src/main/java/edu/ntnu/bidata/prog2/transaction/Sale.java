@@ -14,6 +14,12 @@ public class Sale extends Transaction {
         if(committed){
             return;
         }
+
+        //Prevent selling a share the player does not own.
+        if (!player.getPortfolio().containsShare(share)){
+            throw new IllegalStateException("You don't own share!");
+        }
+
         player.setMoney(
                 player.getMoney().add(calculator.calculateTotal())
         );

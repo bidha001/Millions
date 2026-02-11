@@ -5,10 +5,10 @@ import edu.ntnu.bidata.prog2.model.Player;
 import edu.ntnu.bidata.prog2.model.Share;
 
 public abstract class Transaction {
-    public final Share share;
-    public int week;
-    public final TransactionCalculator calculator;
-    public boolean committed;
+    protected final Share share;
+    protected int week;
+    protected final TransactionCalculator calculator;
+    protected boolean committed;
 
     public Transaction(Share share, int week, TransactionCalculator calculator) {
         this.share = share;
@@ -16,6 +16,10 @@ public abstract class Transaction {
         this.calculator = calculator;
         this.committed = false;
     }
+
+    //get share():share
+    // more, check mappe dokumentation
+    //side 7
 
     public abstract void commit(Player player, TransactionArchive archive);
 }

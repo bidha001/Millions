@@ -10,6 +10,9 @@ public class Portfolio {
         this.shares = new ArrayList<>();
     }
 
+    //to fix
+    // getShares(symbol:String): List<Share>
+
     public List<Share> getShares() {
         return shares;
     }
@@ -25,5 +28,4 @@ public class Portfolio {
     public boolean containsShare(Share share) {
         return shares.contains(share);
     }
-
 }

@@ -9,6 +9,4 @@ public interface TransactionCalculator {
     BigDecimal calculateCommission();
     BigDecimal calculateTax();
     BigDecimal calculateTotal();
-
-
 }
