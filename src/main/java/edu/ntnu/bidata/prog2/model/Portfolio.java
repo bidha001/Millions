@@ -1,5 +1,6 @@
 package edu.ntnu.bidata.prog2.model;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -8,13 +9,6 @@ public class Portfolio {
 
     public Portfolio() {
         this.shares = new ArrayList<>();
-    }
-
-    //to fix
-    // getShares(symbol:String): List<Share>
-
-    public List<Share> getShares() {
-        return shares;
     }
 
     public void addShare(Share share) {
@@ -27,5 +21,27 @@ public class Portfolio {
 
     public boolean containsShare(Share share) {
         return shares.contains(share);
+    }
+
+    public List<Share> getShares(String symbol) { //return all the shares in the portfolio that have the same stock symbol.
+        List<Share> result = new ArrayList<>();
+
+        for (Share share : shares) {
+            if (share.getStock().getSymbol().equals(symbol)) {
+                result.add(share);
+            }
+        }
+        return result;
+    }
+
+    public BigDecimal getTotalQuantity(String symbol) {
+        BigDecimal totalQuantity = BigDecimal.ZERO;
+
+        for (Share share : shares) {
+            if (share.getStock().getSymbol().equals(symbol)) {
+                totalQuantity = totalQuantity.add(share.getQuantity());
+            }
+        }
+        return totalQuantity;
     }
 }

@@ -17,9 +17,21 @@ public abstract class Transaction {
         this.committed = false;
     }
 
-    //get share():share
-    // more, check mappe dokumentation
-    //side 7
+    public Share getShare() {
+        return share;
+    }
+
+    public int getWeek() {
+        return week;
+    }
+
+    public boolean isCommitted() {
+        return committed;
+    }
+
+    public TransactionCalculator getCalculator() {
+        return calculator;
+    }
 
     public abstract void commit(Player player, TransactionArchive archive);
 }

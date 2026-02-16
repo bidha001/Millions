@@ -85,4 +85,8 @@ public class Exchange {
         Sale sale = new Sale(share, week);
         sale.commit(player, archive);
     }
+
+    public TransactionArchive getArchive() {
+        return archive;
+    }
 }

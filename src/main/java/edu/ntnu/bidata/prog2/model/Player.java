@@ -10,14 +10,14 @@ public class Player {
 
     public Player(String name, BigDecimal startingMoney, Portfolio portfolio) {
         this.name = name;
+
         //initial money that player starts with
-
         this.startingMoney = startingMoney;
+
         //money that player currently has after buying and selling shares
-
         this.money = startingMoney;
-        //each player has a portfolio to hold their shares
 
+        //each player has a portfolio to hold their shares
         this.portfolio = new Portfolio();
     }
 
