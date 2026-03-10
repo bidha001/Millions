@@ -1,5 +1,6 @@
 package edu.ntnu.bidata.prog2.model;
 
+
 import java.math.BigDecimal;
 
 public class Player {
@@ -39,5 +40,22 @@ public class Player {
 
     public Portfolio getPortfolio() {
         return portfolio;
+    }
+
+    public BigDecimal getNetWorth() {
+        return money.add(portfolio.getNetWorth());
+    }
+
+    public String getStatus(int weeks) {
+
+        if (weeks >= 20) {
+            return "Speculator";
+        }
+
+        if (weeks >= 10) {
+            return "Investor";
+        }
+
+        return "Beginner";
     }
 }

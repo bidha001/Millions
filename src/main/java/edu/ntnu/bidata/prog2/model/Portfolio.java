@@ -48,4 +48,21 @@ public class Portfolio {
     public List<Share> getAllShares() {
         return new ArrayList<>(shares);
     }
+
+    public BigDecimal getNetWorth() {
+
+        BigDecimal total = BigDecimal.ZERO;
+
+        for (Share share : shares) {
+
+            BigDecimal price = share.getStock().getSalesPrice();
+            BigDecimal quantity = share.getQuantity();
+
+            BigDecimal value = price.multiply(quantity);
+
+            total = total.add(value);
+        }
+
+        return total;
+    }
 }

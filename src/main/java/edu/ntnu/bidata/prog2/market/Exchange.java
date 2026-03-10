@@ -89,4 +89,24 @@ public class Exchange {
     public TransactionArchive getArchive() {
         return archive;
     }
+
+    public List<Stock> getGainers(int limit) {
+
+        List<Stock> stockList = new ArrayList<>(stocks.values());
+
+        stockList.sort((s1, s2) ->
+                s2.getLatestPriceChange().compareTo(s1.getLatestPriceChange()));
+
+        return stockList.subList(0, Math.min(limit, stockList.size()));
+    }
+
+    public List<Stock> getLosers(int limit) {
+
+        List<Stock> stockList = new ArrayList<>(stocks.values());
+
+        stockList.sort((s1, s2) ->
+                s1.getLatestPriceChange().compareTo(s2.getLatestPriceChange()));
+
+        return stockList.subList(0, Math.min(limit, stockList.size()));
+    }
 }

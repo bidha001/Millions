@@ -2,6 +2,7 @@ package edu.ntnu.bidata.prog2.model;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -69,4 +70,49 @@ public class Stock {
     public void addNewSalesPrice(BigDecimal newPrice) {
         prices.add(newPrice);
     }
+
+    /**
+     * Retrieves a list of historical sales prices for the stock.
+     *
+     * @return A list of historical sales prices.
+     */
+    public List<BigDecimal> getHistoricalPrices() {
+        return new ArrayList<>(prices);
+    }
+
+    /**
+     * Retrieves the highest sales price for the stock from the list of prices.
+     *
+     * @return The highest sales price for the stock.
+     */
+    public BigDecimal getHighestPrice() {
+        return Collections.max(prices);
+    }
+
+    /**
+     * Retrieves the lowest sales price for the stock from the list of prices.
+     *
+     * @return The lowest sales price for the stock.
+     */
+    public BigDecimal getLowestPrice() {
+        return Collections.min(prices);
+    }
+
+    /**
+     * Retrieves the latest price change for the stock, which is the difference between the last two prices in the list.
+     *
+     * @return The latest price change for the stock. If there are fewer than 2 prices, returns BigDecimal.ZERO.
+     */
+    public BigDecimal getLatestPriceChange() {
+
+        if (prices.size() < 2) {
+            return BigDecimal.ZERO;
+        }
+
+        BigDecimal latest = prices.get(prices.size() - 1);
+        BigDecimal previous = prices.get(prices.size() - 2);
+
+        return latest.subtract(previous);
+    }
 }
+
