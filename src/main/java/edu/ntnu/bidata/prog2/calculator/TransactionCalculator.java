@@ -1,6 +1,5 @@
 package edu.ntnu.bidata.prog2.calculator;
 
-import edu.ntnu.bidata.prog2.transaction.Transaction;
 
 import java.math.BigDecimal;
 

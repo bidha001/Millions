@@ -8,7 +8,7 @@ public class Player {
     private BigDecimal money;
     private final Portfolio portfolio;
 
-    public Player(String name, BigDecimal startingMoney, Portfolio portfolio) {
+    public Player(String name, BigDecimal startingMoney) {
         this.name = name;
 
         //initial money that player starts with

@@ -1,7 +1,9 @@
 package edu.ntnu.bidata.prog2.transaction;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class TransactionArchive {
     private final List<Transaction> transactions;
@@ -19,6 +21,12 @@ public class TransactionArchive {
         return transactions;
     }
 
-    // check side 7, there is alot to do:
-    // protected vs public.
+    public int countDistinctWeeks(){
+        Set<Integer> weeks = new HashSet<>();
+
+        for (Transaction transaction : transactions) {
+            weeks.add(transaction.getWeek());
+        }
+        return weeks.size();
+    }
 }

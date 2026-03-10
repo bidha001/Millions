@@ -44,4 +44,8 @@ public class Portfolio {
         }
         return totalQuantity;
     }
+
+    public List<Share> getAllShares() {
+        return new ArrayList<>(shares);
+    }
 }
