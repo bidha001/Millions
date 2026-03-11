@@ -5,22 +5,38 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * A class representing an archive of transactions.
+ */
 public class TransactionArchive {
     private final List<Transaction> transactions;
 
-
+    /**
+     * Constructs a new TransactionArchive with an empty list of transactions.
+     */
     public TransactionArchive(){
         this.transactions = new ArrayList<>();
     }
 
+    /**
+     * Adds a transaction to the archive.
+     *
+     * @param transaction the transaction to be added
+     */
     public void addTransaction(Transaction transaction) {
         this.transactions.add(transaction);
     }
+
 
      public List<Transaction> getTransactions() {
         return transactions;
     }
 
+    /**
+     * Counts the number of distinct weeks in which transactions have occurred.
+     *
+     * @return the number of distinct weeks
+     */
     public int countDistinctWeeks(){
         Set<Integer> weeks = new HashSet<>();
 

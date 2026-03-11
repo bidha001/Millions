@@ -20,7 +20,7 @@ public class Main {
 
         Exchange exchange = new Exchange("NASDAQ", stocks);
 
-        // Print stocks
+        // Print initial stocks
         System.out.println("=== Stock Market ===");
 
         for (Stock stock : stocks.values()) {
@@ -30,9 +30,12 @@ public class Main {
                             stock.getSalesPrice()
             );
         }
+
+        // Advance week
         System.out.println("\nAdvancing week...");
         exchange.advance();
 
+        // Print updated prices
         System.out.println("\n=== Updated Prices ===");
 
         for (Stock stock : stocks.values()) {
@@ -42,11 +45,37 @@ public class Main {
                             stock.getSalesPrice()
             );
         }
+
+        // Print gainers and losers
         System.out.println("\nTop Gainer:");
         System.out.println(exchange.getGainers(1).get(0).getCompany());
 
         System.out.println("\nTop Loser:");
         System.out.println(exchange.getLosers(1).get(0).getCompany());
+
+        // Print full statistics
+        printStockStatistics(exchange);
     }
 
+
+    // Helper method to show all statistics
+    private static void printStockStatistics(Exchange exchange) {
+
+        System.out.println("\n=== Stock Statistics ===");
+
+        for (Stock stock : exchange.getGainers(Integer.MAX_VALUE)) {
+
+            System.out.println(
+                    stock.getCompany() +
+                            " (" + stock.getSymbol() + ")"
+            );
+
+            System.out.println("Current price: " + stock.getSalesPrice());
+            System.out.println("Highest price: " + stock.getHighestPrice());
+            System.out.println("Lowest price: " + stock.getLowestPrice());
+            System.out.println("Latest change: " + stock.getLatestPriceChange());
+
+            System.out.println();
+        }
+    }
 }
