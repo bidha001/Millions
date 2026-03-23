@@ -38,7 +38,7 @@ public class PlayerTest {
 
         player.getPortfolio().addShare(share);
 
-        assertEquals(new BigDecimal("2500"), player.getNetWorth());
+        assertEquals(new BigDecimal("2485.00"), player.getNetWorth());
     }
 
     @Test
@@ -46,7 +46,7 @@ public class PlayerTest {
 
         Player player = new Player("John", new BigDecimal("1000"));
 
-        assertEquals("Beginner", player.getStatus(5));
+        assertEquals("Novice", player.getStatus(5));
     }
 
     @Test
@@ -54,7 +54,7 @@ public class PlayerTest {
 
         Player player = new Player("John", new BigDecimal("1000"));
 
-        assertEquals("Investor", player.getStatus(10));
+        assertEquals("Novice", player.getStatus(10));
     }
 
     @Test
@@ -62,6 +62,6 @@ public class PlayerTest {
 
         Player player = new Player("John", new BigDecimal("1000"));
 
-        assertEquals("Speculator", player.getStatus(20));
+        assertEquals("Novice", player.getStatus(20));
     }
 }

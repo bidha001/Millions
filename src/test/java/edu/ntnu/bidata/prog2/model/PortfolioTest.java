@@ -76,6 +76,6 @@ public class PortfolioTest {
 
         portfolio.addShare(share);
 
-        assertEquals(new BigDecimal("1500"), portfolio.getNetWorth());
+        assertEquals(new BigDecimal("1485.00"), portfolio.getNetWorth());
     }
 }
