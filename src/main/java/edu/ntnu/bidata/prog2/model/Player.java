@@ -1,7 +1,9 @@
 package edu.ntnu.bidata.prog2.model;
 
+import edu.ntnu.bidata.prog2.transaction.TransactionArchive;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 /**
  * Represents a player in the stock market game.
@@ -12,6 +14,7 @@ public class Player {
     private final BigDecimal startingMoney;
     private BigDecimal money;
     private final Portfolio portfolio;
+    private final TransactionArchive archive;
 
     /**
      * Constructs a new Player with the specified name and starting money.
@@ -30,6 +33,8 @@ public class Player {
 
         //each player has a portfolio to hold their shares
         this.portfolio = new Portfolio();
+
+        this.archive = new TransactionArchive();
     }
 
     /**
@@ -60,6 +65,15 @@ public class Player {
     }
 
     /**
+     * Retrieves the transaction archive of the player.
+     *
+     * @return The transaction archive of the player.
+     */
+    public TransactionArchive getArchive() {
+        return archive;
+    }
+
+    /**
      * Sets the current money of the player.
      *
      * @param money The new amount of money for the player.
@@ -87,21 +101,32 @@ public class Player {
     }
 
     /**
-     * Determines the status of the player based on the number of weeks they have been playing.
+     * Determines the status of the player based on their net worth and the number of weeks they have been playing.
      *
      * @param weeks The number of weeks the player has been playing.
-     * @return The status of the player as a String ("Speculator", "Investor", or "Beginner").
+     * @return The status of the player: "Speculator", "Investor", or "Novice".
      */
     public String getStatus(int weeks) {
 
-        if (weeks >= 20) {
+        BigDecimal netWorth = getNetWorth();
+
+        // Calculate percentage increase
+        BigDecimal increase = netWorth
+                .subtract(startingMoney)
+                .divide(startingMoney, 2, RoundingMode.HALF_UP);
+
+        // Speculator: 20+ weeks and at least double money
+        if (weeks >= 20 &&
+                netWorth.compareTo(startingMoney.multiply(new BigDecimal("2"))) >= 0) {
             return "Speculator";
         }
 
-        if (weeks >= 10) {
+        // Investor: 10+ weeks AND at least 20% increase
+        if (weeks >= 10 &&
+                increase.compareTo(new BigDecimal("0.2")) >= 0) {
             return "Investor";
         }
 
-        return "Beginner";
+        return "Novice";
     }
 }

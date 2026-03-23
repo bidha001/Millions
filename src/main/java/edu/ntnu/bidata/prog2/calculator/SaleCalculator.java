@@ -46,15 +46,23 @@ public class SaleCalculator implements TransactionCalculator {
     /**
      * Calculates the tax for the sale transaction.
      *
-     * @return the tax amount (profit * 30%)
+     * @return the tax amount (30% of profit, if profit > 0)
      */
     @Override
-    public BigDecimal calculateTax() { //profit = gross - commission - (purchase price * quantity)
-        BigDecimal purchaseCost=
-                share .getPurchasePrice().multiply(share.getQuantity());
+    public BigDecimal calculateTax() {
+
+        BigDecimal purchaseCost =
+                share.getPurchasePrice().multiply(share.getQuantity());
 
         BigDecimal profit =
-                calculateGross().subtract(calculateCommission()).subtract(purchaseCost);
+                calculateGross()
+                        .subtract(calculateCommission())
+                        .subtract(purchaseCost);
+
+        // If no profit, no tax
+        if (profit.compareTo(BigDecimal.ZERO) <= 0) {
+            return BigDecimal.ZERO;
+        }
 
         return profit.multiply(new BigDecimal("0.30"));
     }

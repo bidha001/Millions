@@ -1,5 +1,7 @@
 package edu.ntnu.bidata.prog2.model;
 
+import edu.ntnu.bidata.prog2.calculator.SaleCalculator;
+
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -89,7 +91,7 @@ public class Portfolio {
     }
 
     /**
-     * Calculates the net worth of the portfolio by summing the value of all shares.
+     * Calculates the net worth of the portfolio by summing the total value of all shares.
      *
      * @return the net worth of the portfolio
      */
@@ -99,12 +101,9 @@ public class Portfolio {
 
         for (Share share : shares) {
 
-            BigDecimal price = share.getStock().getSalesPrice();
-            BigDecimal quantity = share.getQuantity();
+            SaleCalculator calculator = new SaleCalculator(share);
 
-            BigDecimal value = price.multiply(quantity);
-
-            total = total.add(value);
+            total = total.add(calculator.calculateTotal());
         }
 
         return total;

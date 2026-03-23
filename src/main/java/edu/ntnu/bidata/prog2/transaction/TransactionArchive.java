@@ -29,7 +29,7 @@ public class TransactionArchive {
 
 
      public List<Transaction> getTransactions() {
-        return transactions;
+        return new ArrayList<>(transactions);
     }
 
     /**

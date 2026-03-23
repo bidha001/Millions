@@ -66,21 +66,27 @@ public class Exchange {
         return stocks.get(symbol);
     }
 
-    /**
-     * Finds stocks whose symbol or company name contains the given search string.
+   /**
+     * Finds stocks whose symbol or company name contains the given search string (case-insensitive).
      *
      * @param search The search string to look for in stock symbols and company names.
      * @return A list of Stock objects that match the search criteria.
      */
-    public List<Stock> findStocks(String search){
+    public List<Stock> findStocks(String search) {
+
         List<Stock> result = new ArrayList<>();
 
+        String lowerSearch = search.toLowerCase();
+
         for (Stock stock : stocks.values()) {
-            if (stock.getSymbol().contains(search) ||
-                    stock.getCompany().contains(search)){
+
+            if (stock.getSymbol().toLowerCase().contains(lowerSearch) ||
+                    stock.getCompany().toLowerCase().contains(lowerSearch)) {
+
                 result.add(stock);
             }
         }
+
         return result;
     }
 
