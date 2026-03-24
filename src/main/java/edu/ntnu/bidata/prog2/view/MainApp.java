@@ -2,9 +2,9 @@ package edu.ntnu.bidata.prog2.view;
 
 import javafx.application.Application;
 
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.control.Label;
-import javafx.scene.control.Separator;
+import javafx.scene.control.*;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -46,6 +46,88 @@ public class MainApp extends Application {
         playerInfo.getChildren().addAll(titleRow, infoRow, line);
 
         root.setTop(playerInfo);
+
+
+        // ---Main Content: Stocks and Portfolio---
+        VBox wrapper = new VBox();
+        // center horizontally
+        wrapper.setAlignment(Pos.TOP_CENTER);
+
+        HBox mainContent = new HBox();
+        mainContent .setSpacing(100);
+        mainContent.setMaxWidth(800);
+        mainContent.setAlignment(Pos.CENTER);
+
+        // ---Left (Stocks)---
+        VBox stocksBox = new VBox();
+        stocksBox.setSpacing(10);
+
+        // Title row
+        HBox stocksTitleRow = new HBox();
+        stocksTitleRow.setSpacing(10);
+
+        Label stocksIcon = new Label("🔍");
+        Label stocksTitle = new Label("Stocks");
+
+        stocksTitleRow.getChildren().addAll(stocksIcon, stocksTitle);
+        // Line under title
+        Separator stocksLine = new Separator();
+
+        // Search bar
+        TextField search = new TextField();
+        search.setPromptText("Search");
+
+        // Table placeholder
+        TableView<String> stockTable = new TableView<>();
+
+        TableColumn<String, String> symbolCol = new TableColumn<>("Symbol");
+        TableColumn<String, String> priceCol = new TableColumn<>("Price");
+        TableColumn<String, String> changeCol = new TableColumn<>("Change");
+
+        stockTable.getColumns().addAll(symbolCol, priceCol, changeCol);
+
+        // Adding all to the stock box
+        stocksBox.getChildren().addAll(stocksTitleRow, stocksLine, search, stockTable);
+
+        // ---Right (Portfolio)---
+        VBox portfolioBox = new VBox();
+        portfolioBox.setSpacing(10);
+
+        // Title row
+        HBox portfolioTitleRow = new HBox();
+        portfolioTitleRow.setSpacing(10);
+
+        Label portfolioIcon = new Label("📊");
+        Label portfolioTitle = new Label("Portfolio");
+
+        portfolioTitleRow.getChildren().addAll(portfolioIcon, portfolioTitle);
+
+        // Line under title
+        Separator portfolioLine = new Separator();
+
+        // Subtitle
+        Label ownedSharesTitle = new Label("Owned Shares");
+
+        // Table placeholder
+        TableView<String> portfolioTable = new TableView<>();
+
+        TableColumn<String, String> pSymbolCol = new TableColumn<>("Symbol");
+        TableColumn<String, String> qtyCol = new TableColumn<>("Qty");
+        TableColumn<String, String> valueCol = new TableColumn<>("Value");
+
+        portfolioTable.getColumns().addAll(pSymbolCol, qtyCol, valueCol);
+
+
+
+        // Adding all to the portfolio box
+        portfolioBox.getChildren().addAll(portfolioTitleRow, portfolioLine, ownedSharesTitle, portfolioTable);
+
+        // Add both sections to the main content
+        mainContent.getChildren().addAll(stocksBox, portfolioBox);
+
+        // Add both side to the main content
+        wrapper.getChildren().addAll(mainContent);
+        root.setCenter(wrapper);
 
 
         // Scene
