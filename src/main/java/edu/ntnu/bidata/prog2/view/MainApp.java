@@ -1,8 +1,8 @@
 package edu.ntnu.bidata.prog2.view;
 
 import edu.ntnu.bidata.prog2.model.Stock;
+import edu.ntnu.bidata.prog2.transaction.Transaction;
 import javafx.application.Application;
-
 import javafx.beans.property.SimpleStringProperty;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -11,122 +11,85 @@ import javafx.scene.layout.*;
 import javafx.stage.Stage;
 
 public class MainApp extends Application {
+
     @Override
-    public void start(Stage stage){
-        // Root layout
+    public void start(Stage stage) {
+
+        // ROOT
         BorderPane root = new BorderPane();
 
-        // ---Top(Player info)---
-        HBox playerInfo = new HBox();
-        playerInfo.setSpacing(10);
+        // TOP - PLAYER INFO
+        HBox playerInfo = new HBox(10);
         playerInfo.setStyle("-fx-padding: 10;");
 
         Label icon = new Label("👤");
         Label title = new Label("Player Info");
 
         playerInfo.getChildren().addAll(icon, title);
-
         root.setTop(playerInfo);
 
-        // ---Player Details on left---
-        VBox left = new VBox();
-        left.setSpacing(15);
-        left.setPrefWidth(100);
+        // LEFT - PLAYER DETAILS
+        VBox left = new VBox(15);
+        left.setPrefWidth(120);
         left.setStyle("-fx-padding: 15;");
 
-        Label name = new Label("Name: ");
-        Label money = new Label("Money: ");
-        Label netWorth = new Label("Net Worth: ");
-        Label status = new Label("Status: ");
-        Label week = new Label("Week: ");
+        left.getChildren().addAll(
+                new Label("Name: "),
+                new Label("Money: "),
+                new Label("Net Worth: "),
+                new Label("Status: "),
+                new Label("Week: ")
+        );
 
-        left.getChildren().addAll(name, money, netWorth, status, week);
         root.setLeft(left);
 
+        // STOCKS BOX
+        VBox stocksBox = new VBox(10);
 
-        // ---Main Content: Stocks and Portfolio---
-        VBox wrapper = new VBox();
+        HBox stocksTitleRow = new HBox(10);
+        stocksTitleRow.getChildren().addAll(
+                new Label("🔍"),
+                new Label("Stocks")
+        );
 
-        wrapper.setAlignment(Pos.TOP_CENTER);
-        wrapper.setSpacing(20);
-
-        HBox mainContent = new HBox();
-        mainContent .setSpacing(100);
-        mainContent.setAlignment(Pos.TOP_CENTER);
-
-        // ---Left (Stocks)---
-        VBox stocksBox = new VBox();
-        stocksBox.setSpacing(10);
-
-        // Stock title row
-        HBox stocksTitleRow = new HBox();
-        stocksTitleRow.setSpacing(10);
-
-        Label stocksIcon = new Label("🔍");
-        Label stocksTitle = new Label("Stocks");
-
-        stocksTitleRow.getChildren().addAll(stocksIcon, stocksTitle);
-        // Line under title
-        Separator stocksLine = new Separator();
-
-        // Search bar
         TextField search = new TextField();
         search.setPromptText("Search");
 
-        // Table placeholder
         TableView<Stock> stockTable = new TableView<>();
 
         TableColumn<Stock, String> symbolCol = new TableColumn<>("Symbol");
         symbolCol.setCellValueFactory(data ->
-                new SimpleStringProperty(data.getValue().getSymbol())
-        );
+                new SimpleStringProperty(data.getValue().getSymbol()));
 
         TableColumn<Stock, String> priceCol = new TableColumn<>("Price");
         priceCol.setCellValueFactory(data ->
-                new SimpleStringProperty(data.getValue().getSalesPrice().toString())
-        );
+                new SimpleStringProperty(data.getValue().getSalesPrice().toString()));
 
         TableColumn<Stock, String> changeCol = new TableColumn<>("Change");
         changeCol.setCellValueFactory(data ->
-                new SimpleStringProperty(data.getValue().getLatestPriceChange().toString())
-        );
+                new SimpleStringProperty(data.getValue().getLatestPriceChange().toString()));
 
         stockTable.getColumns().addAll(symbolCol, priceCol, changeCol);
 
-        // --- SIZE SETTINGS FOR STOCKS ---
-        stockTable.setPrefHeight(245);
-        stockTable.setPrefWidth(250);
-
-        symbolCol.setPrefWidth(100);
-        priceCol.setPrefWidth(100);
-        changeCol.setPrefWidth(100);
-
+        stockTable.setPrefSize(250, 245);
         stockTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
-        // Adding all to the stock box
-        stocksBox.getChildren().addAll(stocksTitleRow, stocksLine, search, stockTable);
+        stocksBox.getChildren().addAll(
+                stocksTitleRow,
+                new Separator(),
+                search,
+                stockTable
+        );
 
+        // PORTFOLIO BOX
+        VBox portfolioBox = new VBox(10);
 
-        // ---Right (Portfolio)---
-        VBox portfolioBox = new VBox();
-        portfolioBox.setSpacing(10);
+        HBox portfolioTitleRow = new HBox(10);
+        portfolioTitleRow.getChildren().addAll(
+                new Label("📊"),
+                new Label("Portfolio")
+        );
 
-        // Portfolio title row
-        HBox portfolioTitleRow = new HBox();
-        portfolioTitleRow.setSpacing(10);
-
-        Label portfolioIcon = new Label("📊");
-        Label portfolioTitle = new Label("Portfolio");
-
-        portfolioTitleRow.getChildren().addAll(portfolioIcon, portfolioTitle);
-
-        // Line under title
-        Separator portfolioLine = new Separator();
-
-        // Subtitle
-        Label ownedSharesTitle = new Label("Owned Shares");
-
-        // Table placeholder
         TableView<String> portfolioTable = new TableView<>();
 
         TableColumn<String, String> pSymbolCol = new TableColumn<>("Symbol");
@@ -135,74 +98,124 @@ public class MainApp extends Application {
 
         portfolioTable.getColumns().addAll(pSymbolCol, qtyCol, valueCol);
 
-        // --- SIZE SETTINGS FOR PORTFOLIO ---
-        portfolioTable.setPrefHeight(250);
-        portfolioTable.setPrefWidth(250);
-
-        pSymbolCol.setPrefWidth(100);
-        qtyCol.setPrefWidth(80);
-        valueCol.setPrefWidth(120);
-
+        portfolioTable.setPrefSize(250, 250);
         portfolioTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
-        // Adding all to the portfolio box
-        portfolioBox.getChildren().addAll(portfolioTitleRow, portfolioLine, ownedSharesTitle, portfolioTable);
+        portfolioBox.getChildren().addAll(
+                portfolioTitleRow,
+                new Separator(),
+                new Label("Owned Shares"),
+                portfolioTable
+        );
 
-        // Add both sections to the main content
-        mainContent.getChildren().addAll(stocksBox, portfolioBox);
-        root.setCenter(mainContent);
+        // MAIN CONTENT (TOP ROW)
+        HBox mainContent = new HBox(100, stocksBox, portfolioBox);
+        mainContent.setAlignment(Pos.TOP_CENTER);
 
-        // ---Selected Stocks ---
-        VBox selectedBox = new VBox();
-        selectedBox.setSpacing(10);
+        // SELECTED STOCK
+        VBox selectedBox = new VBox(10);
+        selectedBox.setMaxWidth(600);
 
-        HBox selectedTitleRow = new HBox();
-        Label starIcon = new Label("⭐");
-        Label selectedTitle = new Label("Selected Stocks");
+        HBox selectedTitleRow = new HBox(10);
+        selectedTitleRow.getChildren().addAll(
+                new Label("⭐"),
+                new Label("Selected Stock")
+        );
 
-        selectedTitleRow.getChildren().addAll(starIcon, selectedTitle);
-        // Separator
-        Separator line = new Separator();
-
-        // Selected Info
-        Label selectedLabel = new Label("Selected:");
-        Label detailsLabel = new Label("Price: | High: | Low: | Change:");
-
-        // Quantity
         HBox quantityRow = new HBox(10);
-        Label quantityLabel = new Label("Quantity:");
         TextField quantityField = new TextField();
         quantityField.setPrefWidth(120);
 
-        quantityRow.getChildren().addAll(quantityLabel, quantityField);
+        quantityRow.getChildren().addAll(
+                new Label("Quantity:"),
+                quantityField
+        );
 
-        // Buttoms
         HBox buttonRow = new HBox(20);
-        Button buyBtn = new Button("BUY");
-        Button sellBtn = new Button("SELL");
-        Button nextWeekBtn = new Button("NEXT WEEK");
+        buttonRow.getChildren().addAll(
+                new Button("BUY"),
+                new Button("SELL"),
+                new Button("NEXT WEEK")
+        );
 
-        buttonRow.getChildren().addAll(buyBtn, sellBtn, nextWeekBtn);
+        selectedBox.getChildren().addAll(
+                selectedTitleRow,
+                new Separator(),
+                new Label("Selected:"),
+                new Label("Price | High | Low | Change"),
+                quantityRow,
+                buttonRow
+        );
 
-        selectedBox.getChildren().addAll(selectedTitleRow, line, selectedLabel, detailsLabel, quantityRow, buttonRow);
+        // TRANSACTIONS
+        VBox transactionsBox = new VBox(10);
+        transactionsBox.setMaxWidth(600);
 
-        VBox centerBox = new VBox(20);
-        centerBox.getChildren().addAll(mainContent, selectedBox);
+        HBox transactionTitleRow = new HBox(10);
+        transactionTitleRow.getChildren().addAll(
+                new Label("★"),
+                new Label("Transactions")
+        );
+
+        TableView<Transaction> transactionTable = new TableView<>();
+
+        TableColumn<Transaction, String> weekCol = new TableColumn<>("Week");
+        weekCol.setCellValueFactory(data ->
+                new SimpleStringProperty(String.valueOf(data.getValue().getWeek())));
+
+        TableColumn<Transaction, String> typeCol = new TableColumn<>("Type");
+        typeCol.setCellValueFactory(data ->
+                new SimpleStringProperty(data.getValue().getClass().getSimpleName()));
+
+        TableColumn<Transaction, String> stockCol = new TableColumn<>("Stock");
+        stockCol.setCellValueFactory(data ->
+                new SimpleStringProperty(
+                        data.getValue().getShare().getStock().getSymbol()));
+
+        TableColumn<Transaction, String> qtyColX = new TableColumn<>("Qty");
+        qtyColX.setCellValueFactory(data ->
+                new SimpleStringProperty(
+                        data.getValue().getShare().getQuantity().toString()));
+
+        TableColumn<Transaction, String> totalCol = new TableColumn<>("Total");
+        totalCol.setCellValueFactory(data ->
+                new SimpleStringProperty(
+                        data.getValue().getCalculator().calculateTotal().toString()));
+
+        transactionTable.getColumns().addAll(
+                weekCol, typeCol, stockCol, qtyColX, totalCol
+        );
+
+        transactionTable.setPrefHeight(120);
+        transactionTable.setMaxWidth(600);
+
+        transactionsBox.getChildren().addAll(
+                transactionTitleRow,
+                new Separator(),
+                transactionTable
+        );
+
+        // CENTER
+        VBox centerBox = new VBox(25);
+        centerBox.setAlignment(Pos.TOP_CENTER);
+        centerBox.setMaxWidth(800);
+
+        centerBox.getChildren().addAll(
+                mainContent,
+                selectedBox,
+                transactionsBox
+        );
 
         root.setCenter(centerBox);
 
-        // Scene
-        Scene scene = new Scene(root, 1000, 700);
-        // set the title in the window.
+        // SCENE
+        Scene scene = new Scene(root, 1000, 800);
         stage.setTitle("Millions");
-        // set the scene in the window.
         stage.setScene(scene);
-        // display the window.
         stage.show();
     }
 
     public static void main(String[] args) {
         launch(args);
     }
-
 }
