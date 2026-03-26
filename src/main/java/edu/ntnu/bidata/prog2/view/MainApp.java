@@ -111,6 +111,16 @@ public class MainApp extends Application {
 
         stockTable.getColumns().addAll(symbolCol, priceCol, changeCol);
 
+        // --- SIZE SETTINGS FOR STOCKS ---
+        stockTable.setPrefHeight(245);
+        stockTable.setPrefWidth(250);
+
+        symbolCol.setPrefWidth(100);
+        priceCol.setPrefWidth(100);
+        changeCol.setPrefWidth(100);
+
+        stockTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+
         // Adding all to the stock box
         stocksBox.getChildren().addAll(stocksTitleRow, stocksLine, search, stockTable);
 
@@ -141,6 +151,16 @@ public class MainApp extends Application {
         TableColumn<String, String> valueCol = new TableColumn<>("Value");
 
         portfolioTable.getColumns().addAll(pSymbolCol, qtyCol, valueCol);
+
+        // --- SIZE SETTINGS FOR PORTFOLIO ---
+        portfolioTable.setPrefHeight(250);
+        portfolioTable.setPrefWidth(250);
+
+        pSymbolCol.setPrefWidth(100);
+        qtyCol.setPrefWidth(80);
+        valueCol.setPrefWidth(120);
+
+        portfolioTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
 
 
