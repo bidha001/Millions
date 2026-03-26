@@ -33,12 +33,19 @@ public class MainApp extends Application {
         left.setPrefWidth(120);
         left.setStyle("-fx-padding: 15;");
 
+        Label name = new Label("Name: ");
+        Label money = new Label("Money: ");
+        Label netWorth = new Label("Net Worth: ");
+        Label status = new Label("Status: ");
+        Label week = new Label("Week: ");
+
+        Button startButton = new Button("New Game");
+        startButton.setMaxWidth(Double.MAX_VALUE);
+
+        startButton.setOnAction(e-> showStartDialog(stage));
+
         left.getChildren().addAll(
-                new Label("Name: "),
-                new Label("Money: "),
-                new Label("Net Worth: "),
-                new Label("Status: "),
-                new Label("Week: ")
+                name, money, netWorth, status, week, startButton
         );
 
         root.setLeft(left);
@@ -213,6 +220,32 @@ public class MainApp extends Application {
         stage.setTitle("Millions");
         stage.setScene(scene);
         stage.show();
+    }
+
+    private void showStartDialog(Stage owner) {
+
+        Dialog<Void> dialog = new Dialog<>();
+        dialog.setTitle("Start New Game");
+
+        TextField nameField = new TextField();
+        TextField moneyField = new TextField();
+
+        nameField.setPromptText("Enter name");
+        moneyField.setPromptText("Enter starting money");
+
+        VBox content = new VBox(10);
+        content.getChildren().addAll(
+                new Label("Name:"), nameField,
+                new Label("Money:"), moneyField
+        );
+
+        dialog.getDialogPane().setContent(content);
+
+        ButtonType startsButton = new ButtonType("Start", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().add(startsButton);
+
+        dialog.initOwner(owner);
+        dialog.showAndWait();
     }
 
     public static void main(String[] args) {
