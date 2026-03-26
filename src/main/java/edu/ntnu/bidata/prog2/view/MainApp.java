@@ -31,7 +31,7 @@ public class MainApp extends Application {
         // ---Player Details on left---
         VBox left = new VBox();
         left.setSpacing(15);
-        left.setPrefWidth(75);
+        left.setPrefWidth(100);
         left.setStyle("-fx-padding: 15;");
 
         Label name = new Label("Name: ");
@@ -151,6 +151,45 @@ public class MainApp extends Application {
         // Add both sections to the main content
         mainContent.getChildren().addAll(stocksBox, portfolioBox);
         root.setCenter(mainContent);
+
+        // ---Selected Stocks ---
+        VBox selectedBox = new VBox();
+        selectedBox.setSpacing(10);
+
+        HBox selectedTitleRow = new HBox();
+        Label starIcon = new Label("⭐");
+        Label selectedTitle = new Label("Selected Stocks");
+
+        selectedTitleRow.getChildren().addAll(starIcon, selectedTitle);
+        // Separator
+        Separator line = new Separator();
+
+        // Selected Info
+        Label selectedLabel = new Label("Selected:");
+        Label detailsLabel = new Label("Price: | High: | Low: | Change:");
+
+        // Quantity
+        HBox quantityRow = new HBox(10);
+        Label quantityLabel = new Label("Quantity:");
+        TextField quantityField = new TextField();
+        quantityField.setPrefWidth(120);
+
+        quantityRow.getChildren().addAll(quantityLabel, quantityField);
+
+        // Buttoms
+        HBox buttonRow = new HBox(20);
+        Button buyBtn = new Button("BUY");
+        Button sellBtn = new Button("SELL");
+        Button nextWeekBtn = new Button("NEXT WEEK");
+
+        buttonRow.getChildren().addAll(buyBtn, sellBtn, nextWeekBtn);
+
+        selectedBox.getChildren().addAll(selectedTitleRow, line, selectedLabel, detailsLabel, quantityRow, buttonRow);
+
+        VBox centerBox = new VBox(20);
+        centerBox.getChildren().addAll(mainContent, selectedBox);
+
+        root.setCenter(centerBox);
 
         // Scene
         Scene scene = new Scene(root, 1000, 700);
