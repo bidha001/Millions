@@ -1,4 +1,4 @@
-package edu.ntnu.bidata.prog2.view;
+package edu.ntnu.bidata.prog2.ui.view;
 
 import edu.ntnu.bidata.prog2.model.Stock;
 import edu.ntnu.bidata.prog2.transaction.Transaction;
@@ -10,7 +10,13 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
 
-public class MainApp extends Application {
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
+
+public class WindowView extends Application {
 
     @Override
     public void start(Stage stage) {
@@ -77,6 +83,9 @@ public class MainApp extends Application {
                 new SimpleStringProperty(data.getValue().getLatestPriceChange().toString()));
 
         stockTable.getColumns().addAll(symbolCol, priceCol, changeCol);
+
+        List<Stock> stockList = loadStocksFromCSV();
+        stockTable.getItems().addAll(stockList);
 
         stockTable.setPrefSize(250, 245);
         stockTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
@@ -246,6 +255,44 @@ public class MainApp extends Application {
 
         dialog.initOwner(owner);
         dialog.showAndWait();
+    }
+
+    private List<Stock> loadStocksFromCSV() {
+        List<Stock> stocks = new ArrayList<>();
+
+        try (BufferedReader reader = new BufferedReader(
+                new InputStreamReader(getClass().getResourceAsStream("/Stocks.csv"))
+        )) {
+
+            String line;
+            boolean firstLine = true;
+
+            while ((line = reader.readLine()) != null) {
+
+                // skip comments and empty lines
+                if (line.startsWith("#") || line.trim().isEmpty()) {
+                    continue;
+                }
+
+                String[] parts = line.split(",");
+
+                if (parts.length < 3) {
+                    continue;
+                }
+
+                String symbol = parts[0];
+                String name = parts[1];
+                double price = Double.parseDouble(parts[2]);
+
+                Stock stock = new Stock(name, symbol, new BigDecimal(price));
+                stocks.add(stock);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return stocks;
     }
 
     public static void main(String[] args) {
