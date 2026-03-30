@@ -24,21 +24,20 @@ public class Purchase extends Transaction {
      */
     @Override
     public void commit(Player player, TransactionArchive archive) {
-        if(committed){
-            return;
+
+        if (committed) {
+            throw new IllegalStateException("Transaction already committed!");
         }
 
         BigDecimal totalCost = calculator.calculateTotal();
 
-        //Prevent buying shares if player doesn't have enough money.
-        if(player.getMoney().compareTo(totalCost) < 0){
-            throw new IllegalStateException("You don't have enough money to buy this share!");
+        if (player.getMoney().compareTo(totalCost) < 0) {
+            throw new IllegalStateException("You don't have enough money!");
         }
 
-        player.setMoney(
-                player.getMoney().subtract(calculator.calculateTotal())
-        );
+        player.setMoney(player.getMoney().subtract(totalCost));
         player.getPortfolio().addShare(share);
+
         committed = true;
         archive.addTransaction(this);
     }

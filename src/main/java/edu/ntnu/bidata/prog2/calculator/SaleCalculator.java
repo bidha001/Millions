@@ -3,6 +3,7 @@ package edu.ntnu.bidata.prog2.calculator;
 import edu.ntnu.bidata.prog2.model.Share;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 /**
  * SaleCalculator calculates the financial details of a stock sale transaction.
@@ -40,7 +41,9 @@ public class SaleCalculator implements TransactionCalculator {
      */
     @Override
     public BigDecimal calculateCommission() { //commission = gross * 1%
-        return calculateGross().multiply(new BigDecimal("0.01"));
+        return calculateGross()
+                .multiply(new BigDecimal("0.01"))
+                .setScale(2, RoundingMode.HALF_UP);
     }
 
     /**
@@ -51,31 +54,39 @@ public class SaleCalculator implements TransactionCalculator {
     @Override
     public BigDecimal calculateTax() {
 
+        BigDecimal gross = calculateGross();
+        BigDecimal commission = calculateCommission();
+
         BigDecimal purchaseCost =
                 share.getPurchasePrice().multiply(share.getQuantity());
 
-        BigDecimal profit =
-                calculateGross()
-                        .subtract(calculateCommission())
-                        .subtract(purchaseCost);
+        BigDecimal profit = gross
+                .subtract(commission)
+                .subtract(purchaseCost);
 
-        // If no profit, no tax
         if (profit.compareTo(BigDecimal.ZERO) <= 0) {
             return BigDecimal.ZERO;
         }
 
-        return profit.multiply(new BigDecimal("0.30"));
+        return profit.multiply(new BigDecimal("0.30"))
+                .setScale(2, RoundingMode.HALF_UP);
     }
 
-    /**
+     /**
      * Calculates the total amount for the sale transaction.
      *
      * @return the total amount (gross - commission - tax)
      */
     @Override
-    public BigDecimal calculateTotal() { //total = gross - commission - tax
-        return calculateGross()
-                .subtract(calculateCommission())
-                .subtract(calculateTax());
+    public BigDecimal calculateTotal() {
+
+        BigDecimal gross = calculateGross();
+        BigDecimal commission = calculateCommission();
+        BigDecimal tax = calculateTax();
+
+        return gross
+                .subtract(commission)
+                .subtract(tax)
+                .setScale(2, RoundingMode.HALF_UP);
     }
 }

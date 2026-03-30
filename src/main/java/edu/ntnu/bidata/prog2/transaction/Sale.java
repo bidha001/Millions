@@ -4,6 +4,8 @@ import edu.ntnu.bidata.prog2.calculator.SaleCalculator;
 import edu.ntnu.bidata.prog2.model.Player;
 import edu.ntnu.bidata.prog2.model.Share;
 
+import java.math.BigDecimal;
+
 /***
  * Represents a sale of a share.
  */
@@ -22,19 +24,20 @@ public class Sale extends Transaction {
      */
     @Override
     public void commit(Player player, TransactionArchive archive) {
-        if(committed){
-            return;
+
+        if (committed) {
+            throw new IllegalStateException("Transaction already committed!");
         }
 
-        //Prevent selling a share the player does not own.
-        if (!player.getPortfolio().containsShare(share)){
-            throw new IllegalStateException("You don't own share!");
+        if (!player.getPortfolio().containsShare(share)) {
+            throw new IllegalStateException("You don't own this share!");
         }
 
-        player.setMoney(
-                player.getMoney().add(calculator.calculateTotal())
-        );
+        BigDecimal total = calculator.calculateTotal();
+
+        player.setMoney(player.getMoney().add(total));
         player.getPortfolio().removeShare(share);
+
         committed = true;
         archive.addTransaction(this);
     }

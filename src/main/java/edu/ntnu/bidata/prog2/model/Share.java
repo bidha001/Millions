@@ -53,4 +53,40 @@ public class Share {
     public BigDecimal getPurchasePrice() {
         return purchasePrice;
     }
+
+    /**
+     * Determines whether this Share is equal to another object.
+     * Two Share objects are considered equal if they have the same stock symbol,
+     * quantity, and purchase price.
+     *
+     * @param o The object to compare with this Share.
+     * @return true if the specified object is equal to this Share; false otherwise.
+     */
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+
+        if (o == null || getClass() != o.getClass())
+            return false;
+
+        Share share = (Share) o;
+
+        return stock.getSymbol().equals(share.stock.getSymbol())
+                && quantity.compareTo(share.quantity) == 0
+                && purchasePrice.compareTo(share.purchasePrice) == 0;
+    }
+
+    /**
+     * Returns a hash code value for this Share object.
+     * The hash code is computed based on the stock symbol, quantity, and purchase price.
+     *
+     * @return A hash code value for this Share object.
+     */
+    @Override
+    public int hashCode() {
+        return stock.getSymbol().hashCode()
+                + quantity.hashCode()
+                + purchasePrice.hashCode();
+    }
 }

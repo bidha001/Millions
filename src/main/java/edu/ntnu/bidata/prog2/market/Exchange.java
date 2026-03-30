@@ -21,7 +21,6 @@ public class Exchange {
     private final String name;
     private final Map<String, Stock> stocks;
     private int week;
-    private final TransactionArchive archive;
     private final Random random;
 
     /**
@@ -34,7 +33,6 @@ public class Exchange {
         this.name = name;
         this.stocks = stocks;
         this.week = 1;
-        this.archive = new TransactionArchive();
         this.random = new Random();
     }
 
@@ -126,7 +124,7 @@ public class Exchange {
      */
     public void buy(Player player, Share share) {
         Purchase purchase = new Purchase(share, week);
-        purchase.commit(player, archive);
+        purchase.commit(player, player.getArchive());
     }
 
     /**
@@ -137,16 +135,7 @@ public class Exchange {
      */
     public void sell(Player player, Share share) {
         Sale sale = new Sale(share, week);
-        sale.commit(player, archive);
-    }
-
-    /**
-     * Retrieves the transaction archive containing all transactions that have occurred on the exchange.
-     *
-     * @return The transaction archive.
-     */
-    public TransactionArchive getArchive() {
-        return archive;
+        sale.commit(player, player.getArchive());
     }
 
     /**

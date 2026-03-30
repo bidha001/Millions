@@ -1,7 +1,5 @@
 package edu.ntnu.bidata.prog2.model;
 
-import edu.ntnu.bidata.prog2.calculator.SaleCalculator;
-
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -55,9 +53,8 @@ public class Portfolio {
      */
     public List<Share> getShares(String symbol) { //return all the shares in the portfolio that have the same stock symbol.
         List<Share> result = new ArrayList<>();
-
         for (Share share : shares) {
-            if (share.getStock().getSymbol().equals(symbol)) {
+            if (share.getStock().getSymbol().equalsIgnoreCase(symbol)) {
                 result.add(share);
             }
         }
@@ -74,7 +71,7 @@ public class Portfolio {
         BigDecimal totalQuantity = BigDecimal.ZERO;
 
         for (Share share : shares) {
-            if (share.getStock().getSymbol().equals(symbol)) {
+            if (share.getStock().getSymbol().equalsIgnoreCase(symbol)) {
                 totalQuantity = totalQuantity.add(share.getQuantity());
             }
         }
@@ -90,8 +87,8 @@ public class Portfolio {
         return new ArrayList<>(shares);
     }
 
-    /**
-     * Calculates the net worth of the portfolio by summing the total value of all shares.
+  /**
+     * Calculates the net worth of the portfolio by summing the value of all shares.
      *
      * @return the net worth of the portfolio
      */
@@ -101,9 +98,11 @@ public class Portfolio {
 
         for (Share share : shares) {
 
-            SaleCalculator calculator = new SaleCalculator(share);
+            BigDecimal value = share.getStock()
+                    .getSalesPrice()
+                    .multiply(share.getQuantity());
 
-            total = total.add(calculator.calculateTotal());
+            total = total.add(value);
         }
 
         return total;

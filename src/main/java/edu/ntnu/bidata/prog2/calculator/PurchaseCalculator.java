@@ -3,6 +3,7 @@ package edu.ntnu.bidata.prog2.calculator;
 import edu.ntnu.bidata.prog2.model.Share;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 /**
  * Calculator for purchase transactions.
@@ -36,7 +37,9 @@ public class PurchaseCalculator implements TransactionCalculator {
      */
     @Override
     public BigDecimal calculateCommission() {
-        return calculateGross().multiply(new BigDecimal("0.005"));
+        return calculateGross()
+                .multiply(new BigDecimal("0.005"))
+                .setScale(2, RoundingMode.HALF_UP);
     }
 
     /**
@@ -58,6 +61,7 @@ public class PurchaseCalculator implements TransactionCalculator {
     public BigDecimal calculateTotal() {
         return calculateGross()
                 .add(calculateCommission())
-                .add(calculateTax());
+                .add(calculateTax())
+                .setScale(2, RoundingMode.HALF_UP);
     }
 }
