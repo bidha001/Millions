@@ -1,7 +1,9 @@
 package edu.ntnu.bidata.prog2.ui.view;
 
+import edu.ntnu.bidata.prog2.model.Share;
 import edu.ntnu.bidata.prog2.model.Stock;
 import edu.ntnu.bidata.prog2.transaction.Transaction;
+import edu.ntnu.bidata.prog2.ui.controller.WindowViewController;
 import javafx.application.Application;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.geometry.Pos;
@@ -14,14 +16,28 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class WindowView extends Application {
+    private WindowViewController controller;
+    private TableView<Share> portfolioTable;
+    private TableView<Transaction> transactionTable;
+    private Button buyButton;
+    private Button sellButton;
+    private Button nextWeekButton;
+    private Label nameLabel;
+    private Label moneyLabel;
+    private Label netWorthLabel;
+    private Label statusLabel;
+    private Label weekLabel;
 
     @Override
     public void start(Stage stage) {
 
-        // ROOT
+        controller = new WindowViewController();
+
         BorderPane root = new BorderPane();
 
         // TOP - PLAYER INFO
@@ -36,14 +52,14 @@ public class WindowView extends Application {
 
         // LEFT - PLAYER DETAILS
         VBox left = new VBox(15);
-        left.setPrefWidth(120);
+        left.setPrefWidth(150);
         left.setStyle("-fx-padding: 15;");
 
-        Label name = new Label("Name: ");
-        Label money = new Label("Money: ");
-        Label netWorth = new Label("Net Worth: ");
-        Label status = new Label("Status: ");
-        Label week = new Label("Week: ");
+        nameLabel = new Label("Name: ");
+        moneyLabel = new Label("Money: ");
+        netWorthLabel = new Label("Net Worth: ");
+        statusLabel = new Label("Status: ");
+        weekLabel = new Label("Week: ");
 
         Button startButton = new Button("New Game");
         startButton.setMaxWidth(Double.MAX_VALUE);
@@ -51,7 +67,7 @@ public class WindowView extends Application {
         startButton.setOnAction(e-> showStartDialog(stage));
 
         left.getChildren().addAll(
-                name, money, netWorth, status, week, startButton
+                nameLabel, moneyLabel, netWorthLabel, statusLabel, weekLabel, startButton
         );
 
         root.setLeft(left);
@@ -87,6 +103,17 @@ public class WindowView extends Application {
         List<Stock> stockList = loadStocksFromCSV();
         stockTable.getItems().addAll(stockList);
 
+        search.textProperty().addListener((observable, oldValue, newValue) -> {
+
+            stockTable.getItems().clear();
+
+            for (Stock stock : stockList) {
+                if (stock.getSymbol().toLowerCase().contains(newValue.toLowerCase())) {
+                    stockTable.getItems().add(stock);
+                }
+            }
+        });
+
         stockTable.setPrefSize(250, 245);
         stockTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
@@ -106,11 +133,23 @@ public class WindowView extends Application {
                 new Label("Portfolio")
         );
 
-        TableView<String> portfolioTable = new TableView<>();
+        portfolioTable = new TableView<>();
 
-        TableColumn<String, String> pSymbolCol = new TableColumn<>("Symbol");
-        TableColumn<String, String> qtyCol = new TableColumn<>("Qty");
-        TableColumn<String, String> valueCol = new TableColumn<>("Value");
+        TableColumn<Share, String> pSymbolCol = new TableColumn<>("Symbol");
+        pSymbolCol.setCellValueFactory(data ->
+                new SimpleStringProperty(data.getValue().getStock().getSymbol()));
+
+        TableColumn<Share, String> qtyCol = new TableColumn<>("Qty");
+        qtyCol.setCellValueFactory(data ->
+                new SimpleStringProperty(data.getValue().getQuantity().toString()));
+
+        TableColumn<Share, String> valueCol = new TableColumn<>("Value");
+        valueCol.setCellValueFactory(data ->
+                new SimpleStringProperty(
+                        data.getValue().getStock().getSalesPrice()
+                                .multiply(data.getValue().getQuantity())
+                                .toString()
+                ));
 
         portfolioTable.getColumns().addAll(pSymbolCol, qtyCol, valueCol);
 
@@ -128,7 +167,7 @@ public class WindowView extends Application {
         HBox mainContent = new HBox(100, stocksBox, portfolioBox);
         mainContent.setAlignment(Pos.TOP_CENTER);
 
-        // SELECTED STOCK
+        // --- SELECTED STOCK ---
         VBox selectedBox = new VBox(10);
         selectedBox.setMaxWidth(600);
 
@@ -147,18 +186,139 @@ public class WindowView extends Application {
                 quantityField
         );
 
+        buyButton = new Button("BUY");
+        sellButton = new Button("SELL");
+        nextWeekButton = new Button("NEXT WEEK");
+
+        buyButton.setDisable(true);
+        sellButton.setDisable(true);
+        nextWeekButton.setDisable(true);
+
         HBox buttonRow = new HBox(20);
         buttonRow.getChildren().addAll(
-                new Button("BUY"),
-                new Button("SELL"),
-                new Button("NEXT WEEK")
+                buyButton,
+                sellButton,
+                nextWeekButton
+        );
+
+        nextWeekButton.setOnAction(e -> {
+            controller.nextWeek();
+            updatePlayerInfo();
+            updatePortfolioTable();
+            updateTransactionTable();
+            stockTable.refresh();
+        });
+
+        buyButton.setOnAction(e -> {
+
+            if (controller.getPlayer() == null) {
+                new Alert(Alert.AlertType.WARNING, "Start a game first!").showAndWait();
+                return;
+            }
+
+            Stock selectedStock = stockTable.getSelectionModel().getSelectedItem();
+
+            if (selectedStock == null) {
+                new Alert(Alert.AlertType.WARNING, "Select a stock first!").showAndWait();
+                return;
+            }
+
+            try {
+                BigDecimal quantity = new BigDecimal(quantityField.getText());
+
+                if (quantity.compareTo(BigDecimal.ZERO) <= 0) {
+                    new Alert(Alert.AlertType.WARNING, "Quantity must be greater than 0!")
+                            .showAndWait();
+                    return;
+                }
+
+                Share share = new Share(
+                        selectedStock,
+                        quantity,
+                        selectedStock.getSalesPrice()
+                );
+
+                controller.buy(share);
+                updatePlayerInfo();
+                updatePortfolioTable();
+                updateTransactionTable();
+                quantityField.clear();
+
+            } catch (Exception ex) {
+                new Alert(Alert.AlertType.ERROR, "Invalid quantity!")
+                        .showAndWait();
+            }
+        });
+
+        sellButton.setOnAction(e -> {
+
+            if (controller.getPlayer() == null) {
+                new Alert(Alert.AlertType.WARNING, "Start a game first!")
+                        .showAndWait();
+                return;
+            }
+
+            Share selectedShare = portfolioTable.getSelectionModel().getSelectedItem();
+
+            if (selectedShare == null) {
+                new Alert(Alert.AlertType.WARNING, "Select a share from portfolio!")
+                        .showAndWait();
+                return;
+            }
+
+            try {
+                BigDecimal quantity = new BigDecimal(quantityField.getText());
+
+                if (quantity.compareTo(BigDecimal.ZERO) <= 0) {
+                    new Alert(Alert.AlertType.WARNING, "Quantity must be greater than 0!")
+                            .showAndWait();
+                    return;
+                }
+
+                //
+                if (quantity.compareTo(selectedShare.getQuantity()) > 0) {
+                    new Alert(Alert.AlertType.ERROR, "You don't own that many shares!")
+                            .showAndWait();
+                    return;
+                }
+
+                controller.sell(selectedShare.getStock(), quantity);
+
+                updatePlayerInfo();
+                updatePortfolioTable();
+                updateTransactionTable();
+                quantityField.clear();
+
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                new Alert(Alert.AlertType.ERROR, ex.getMessage())
+                        .showAndWait();
+            }
+        });
+
+        // --- Selected stock labels ---
+        Label selectedLabel = new Label("Selected: ");
+        Label detailsLabel = new Label("Price | High | Low | Change");
+
+        stockTable.getSelectionModel().selectedItemProperty().addListener(
+                (obs, oldStock, newStock) -> {
+
+                    if (newStock != null) {
+                        selectedLabel.setText("Selected: " + newStock.getSymbol());
+
+                        detailsLabel.setText(
+                                "Price: " + newStock.getSalesPrice()
+                                        + " | Change: " + newStock.getLatestPriceChange()
+                        );
+                    }
+                }
         );
 
         selectedBox.getChildren().addAll(
                 selectedTitleRow,
                 new Separator(),
-                new Label("Selected:"),
-                new Label("Price | High | Low | Change"),
+                selectedLabel,
+                detailsLabel,
                 quantityRow,
                 buttonRow
         );
@@ -173,7 +333,7 @@ public class WindowView extends Application {
                 new Label("Transactions")
         );
 
-        TableView<Transaction> transactionTable = new TableView<>();
+        transactionTable = new TableView<>();
 
         TableColumn<Transaction, String> weekCol = new TableColumn<>("Week");
         weekCol.setCellValueFactory(data ->
@@ -254,7 +414,44 @@ public class WindowView extends Application {
         dialog.getDialogPane().getButtonTypes().add(startsButton);
 
         dialog.initOwner(owner);
+
+        dialog.setResultConverter(button -> {
+            if (button == startsButton) {
+
+                String name = nameField.getText();
+
+                try {
+                    BigDecimal money = new BigDecimal(moneyField.getText());
+
+                    controller.startNewGame(name, money, loadStocksAsMap());
+
+                    buyButton.setDisable(false);
+                    sellButton.setDisable(false);
+                    nextWeekButton.setDisable(false);
+
+                    updatePlayerInfo();
+                    updatePortfolioTable();
+                    updateTransactionTable();
+
+                } catch (Exception e) {
+                    new Alert(Alert.AlertType.ERROR, "Invalid input for money!").showAndWait();
+                }
+            }
+            return null;
+        });
+
         dialog.showAndWait();
+    }
+
+
+    private Map<String, Stock> loadStocksAsMap() {
+        Map<String, Stock> map = new HashMap<>();
+
+        for (Stock stock : loadStocksFromCSV()) {
+            map.put(stock.getSymbol(), stock);
+        }
+
+        return map;
     }
 
     private List<Stock> loadStocksFromCSV() {
@@ -265,8 +462,6 @@ public class WindowView extends Application {
         )) {
 
             String line;
-            boolean firstLine = true;
-
             while ((line = reader.readLine()) != null) {
 
                 // skip comments and empty lines
@@ -293,6 +488,36 @@ public class WindowView extends Application {
         }
 
         return stocks;
+    }
+
+    private void updatePlayerInfo() {
+        if (controller.getPlayer() == null) return;
+
+        nameLabel.setText("Name: " + controller.getPlayer().getName());
+        moneyLabel.setText("Money: " + controller.getPlayer().getMoney());
+        netWorthLabel.setText("Net Worth: " + controller.getPlayer().getNetWorth());
+        weekLabel.setText("Week: " + controller.getExchange().getWeek());
+
+        int weeksPlayed = controller.getPlayer().getArchive().countDistinctWeeks();
+        statusLabel.setText("Status: " + controller.getPlayer().getStatus(weeksPlayed));
+    }
+
+    private void updatePortfolioTable() {
+        if (controller.getPlayer() == null) return;
+
+        portfolioTable.getItems().clear();
+        portfolioTable.getItems().addAll(
+                controller.getPlayer().getPortfolio().getAllShares()
+        );
+    }
+
+    private void updateTransactionTable() {
+        if (controller.getPlayer() == null) return;
+
+        transactionTable.getItems().clear();
+        transactionTable.getItems().addAll(
+                controller.getPlayer().getArchive().getTransactions()
+        );
     }
 
     public static void main(String[] args) {

@@ -107,4 +107,19 @@ public class Portfolio {
 
         return total;
     }
+
+    /**
+     * Retrieves a share from the portfolio based on the stock.
+     *
+     * @param stock the stock to search for
+     * @return the share associated with the specified stock, or null if not found
+     */
+    public Share getShareByStock(Stock stock) {
+        for (Share share : shares) {
+            if (share.getStock().getSymbol().equals(stock.getSymbol())) {
+                return share;
+            }
+        }
+        return null;
+    }
 }

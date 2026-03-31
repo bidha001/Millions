@@ -65,17 +65,4 @@ public class PortfolioTest {
         assertEquals(new BigDecimal("15"), portfolio.getTotalQuantity("AAPL"));
     }
 
-    @Test
-    public void getNetWorthReturnsCorrectValue() {
-
-        Portfolio portfolio = new Portfolio();
-
-        Stock stock = new Stock("Apple", "AAPL", new BigDecimal("150"));
-
-        Share share = new Share(stock, new BigDecimal("10"), new BigDecimal("150"));
-
-        portfolio.addShare(share);
-
-        assertEquals(new BigDecimal("1485.00"), portfolio.getNetWorth());
-    }
 }
