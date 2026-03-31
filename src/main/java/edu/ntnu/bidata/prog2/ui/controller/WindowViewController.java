@@ -48,7 +48,7 @@ public class WindowViewController {
         Share shareToSell = new Share(
                 stock,
                 quantity,
-                stock.getSalesPrice()
+                existingShare.getPurchasePrice()
         );
 
         exchange.sell(player, shareToSell);
