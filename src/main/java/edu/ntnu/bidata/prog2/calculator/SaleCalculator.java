@@ -25,12 +25,10 @@ public class SaleCalculator implements TransactionCalculator {
     /**
      * Calculates the gross amount for the sale transaction.
      *
-     * @return the gross amount (sales price * quantity)
+     * @return the gross amount (sale price * quantity)
      */
-    @Override
-    public BigDecimal calculateGross() { //gross = sales price * quantity
-        return share.getStock()
-                .getSalesPrice()
+    public BigDecimal calculateGross() {
+        return share.getSalePrice()
                 .multiply(share.getQuantity());
     }
 

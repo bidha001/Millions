@@ -13,6 +13,7 @@ public class Share {
     private final Stock stock;
     private final BigDecimal quantity;
     private final BigDecimal purchasePrice;
+    private final BigDecimal salePrice;
 
     /**
      * Constructs a new Share object with the specified stock, quantity, and purchase price.
@@ -21,10 +22,11 @@ public class Share {
      * @param quantity      The quantity of shares owned.
      * @param purchasePrice The price at which the shares were purchased.
      */
-    public Share(Stock stock, BigDecimal quantity, BigDecimal purchasePrice) {
+    public Share(Stock stock, BigDecimal quantity, BigDecimal purchasePrice, BigDecimal salePrice){
         this.stock = stock;
         this.quantity = quantity;
         this.purchasePrice = purchasePrice;
+        this.salePrice = salePrice;
     }
 
     /**
@@ -52,6 +54,15 @@ public class Share {
      */
     public BigDecimal getPurchasePrice() {
         return purchasePrice;
+    }
+
+    /**
+     * Retrieves the price at which the shares were sold.
+     *
+     * @return The sale price of the shares.
+     */
+    public BigDecimal getSalePrice() {
+        return salePrice;
     }
 
     /**

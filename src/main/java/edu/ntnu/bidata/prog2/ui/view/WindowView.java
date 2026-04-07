@@ -22,6 +22,7 @@ import java.util.Map;
 
 public class WindowView extends Application {
     private WindowViewController controller;
+    private TableView<Stock> stockTable;
     private TableView<Share> portfolioTable;
     private TableView<Transaction> transactionTable;
     private Button buyButton;
@@ -84,7 +85,7 @@ public class WindowView extends Application {
         TextField search = new TextField();
         search.setPromptText("Search");
 
-        TableView<Stock> stockTable = new TableView<>();
+        stockTable = new TableView<>();
 
         TableColumn<Stock, String> symbolCol = new TableColumn<>("Symbol");
         symbolCol.setCellValueFactory(data ->
@@ -100,17 +101,15 @@ public class WindowView extends Application {
 
         stockTable.getColumns().addAll(symbolCol, priceCol, changeCol);
 
-        List<Stock> stockList = loadStocksFromCSV();
-        stockTable.getItems().addAll(stockList);
 
         search.textProperty().addListener((observable, oldValue, newValue) -> {
 
             stockTable.getItems().clear();
 
-            for (Stock stock : stockList) {
-                if (stock.getSymbol().toLowerCase().contains(newValue.toLowerCase())) {
-                    stockTable.getItems().add(stock);
-                }
+            if (controller.getExchange() != null) {
+                stockTable.getItems().addAll(
+                        controller.getExchange().findStocks(newValue)
+                );
             }
         });
 
@@ -235,7 +234,8 @@ public class WindowView extends Application {
                 Share share = new Share(
                         selectedStock,
                         quantity,
-                        selectedStock.getSalesPrice()
+                        selectedStock.getSalesPrice(),
+                        null
                 );
 
                 controller.buy(share);
@@ -308,6 +308,8 @@ public class WindowView extends Application {
 
                         detailsLabel.setText(
                                 "Price: " + newStock.getSalesPrice()
+                                        + " | High: " + newStock.getHighestPrice()
+                                        + " | Low: " + newStock.getLowestPrice()
                                         + " | Change: " + newStock.getLatestPriceChange()
                         );
                     }
@@ -424,6 +426,8 @@ public class WindowView extends Application {
                     BigDecimal money = new BigDecimal(moneyField.getText());
 
                     controller.startNewGame(name, money, loadStocksAsMap());
+                    stockTable.getItems().clear();
+                    stockTable.getItems().addAll(controller.getExchange().findStocks(""));
 
                     buyButton.setDisable(false);
                     sellButton.setDisable(false);

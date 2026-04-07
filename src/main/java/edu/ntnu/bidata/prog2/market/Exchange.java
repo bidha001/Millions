@@ -97,22 +97,29 @@ public class Exchange {
         week++;
 
         for (Stock stock : stocks.values()) {
-            //price change between -5% and +5%)
-            double changePercent = -0.05 + (0.10) * random.nextDouble();
+
+            // update trend
+            stock.updateTrend(random);
+
+            // small random noise
+            double noise = (random.nextDouble() - 0.5) * 0.02;
+
+            // combine trend + noise
+            double changePercent = stock.getTrend() + noise;
 
             BigDecimal currentPrice = stock.getSalesPrice();
             BigDecimal multiplier = BigDecimal.valueOf(1 + changePercent);
 
-            // Round to 2 decimal places
             BigDecimal newPrice = currentPrice.multiply(multiplier)
                     .setScale(2, RoundingMode.HALF_UP);
 
-            // Ensure price doesn't go negative
             if (newPrice.compareTo(BigDecimal.ONE) < 0) {
-                newPrice = BigDecimal.ONE; // Ensure price doesn't go negative
+                newPrice = BigDecimal.ONE;
             }
 
             stock.addNewSalesPrice(newPrice);
+
+            System.out.println(stock.getSymbol() + " → " + newPrice);
         }
     }
 

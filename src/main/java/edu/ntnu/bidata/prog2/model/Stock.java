@@ -18,6 +18,7 @@ public class Stock {
     private final String symbol;
     //declaration of Stock has a list of price
     private final List<BigDecimal> prices;
+    private double trend = 0.0;
 
     /**
      * Constructs a new Stock object with the specified company name, stock symbol, and initial price.
@@ -113,6 +114,17 @@ public class Stock {
         BigDecimal previous = prices.get(prices.size() - 2);
 
         return latest.subtract(previous);
+    }
+
+    public void updateTrend(java.util.Random random) {
+        trend += (random.nextDouble() - 0.5) * 0.02;
+
+        if (trend > 0.05) trend = 0.05;
+        if (trend < -0.05) trend = -0.05;
+    }
+
+    public double getTrend() {
+        return trend;
     }
 }
 

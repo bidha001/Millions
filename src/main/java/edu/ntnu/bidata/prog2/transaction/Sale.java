@@ -53,7 +53,8 @@ public class Sale extends Transaction {
             Share updatedShare = new Share(
                     existingShare.getStock(),
                     remaining,
-                    existingShare.getPurchasePrice()
+                    existingShare.getPurchasePrice(),
+                    null
             );
             player.getPortfolio().addShare(updatedShare);
         }
