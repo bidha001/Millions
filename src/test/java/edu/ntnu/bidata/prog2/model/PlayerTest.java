@@ -34,7 +34,7 @@ public class PlayerTest {
         Player player = new Player("John", new BigDecimal("1000"));
 
         Stock stock = new Stock("Apple", "AAPL", new BigDecimal("150"));
-        Share share = new Share(stock, new BigDecimal("10"), new BigDecimal("150"));
+        Share share = new Share(stock, new BigDecimal("10"), new BigDecimal("150"), null);
 
         player.getPortfolio().addShare(share);
 

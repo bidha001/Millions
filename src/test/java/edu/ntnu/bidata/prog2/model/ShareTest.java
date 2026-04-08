@@ -16,7 +16,7 @@ public class ShareTest {
 
         Stock stock = new Stock("Apple", "AAPL", new BigDecimal("150"));
 
-        Share share = new Share(stock, new BigDecimal("5"), new BigDecimal("150"));
+        Share share = new Share(stock, new BigDecimal("5"), new BigDecimal("150"), null);
 
         assertEquals(stock, share.getStock());
     }
@@ -29,7 +29,7 @@ public class ShareTest {
 
         Stock stock = new Stock("Apple", "AAPL", new BigDecimal("150"));
 
-        Share share = new Share(stock, new BigDecimal("20"), new BigDecimal("150"));
+        Share share = new Share(stock, new BigDecimal("20"), new BigDecimal("150"), null);
 
         assertEquals(new BigDecimal("20"), share.getQuantity());
     }

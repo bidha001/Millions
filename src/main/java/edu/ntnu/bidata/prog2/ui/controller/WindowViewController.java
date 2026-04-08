@@ -29,11 +29,59 @@ public class WindowViewController {
         exchange.advance();
     }
 
-    public void buy(Share share) {
+    public void buy(Stock stock, String quantityInput) {
+
+        if (player == null) {
+            throw new IllegalArgumentException("Start a game first!");
+        }
+
+        if (stock == null) {
+            throw new IllegalArgumentException("Select a stock first!");
+        }
+
+        BigDecimal quantity;
+
+        try {
+            quantity = new BigDecimal(quantityInput);
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Invalid quantity!");
+        }
+
+        if (quantity.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Quantity must be greater than 0!");
+        }
+
+        Share share = new Share(
+                stock,
+                quantity,
+                stock.getSalesPrice(),
+                null
+        );
+
         exchange.buy(player, share);
     }
 
-    public void sell(Stock stock, BigDecimal quantity) {
+    public void sell(Stock stock, String quantityInput) {
+
+        if (player == null) {
+            throw new IllegalArgumentException("Start a game first!");
+        }
+
+        if (stock == null) {
+            throw new IllegalArgumentException("Select a stock first!");
+        }
+
+        BigDecimal quantity;
+
+        try {
+            quantity = new BigDecimal(quantityInput);
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Invalid quantity!");
+        }
+
+        if (quantity.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Quantity must be greater than 0!");
+        }
 
         Share existingShare = player.getPortfolio().getShareByStock(stock);
 
@@ -54,5 +102,4 @@ public class WindowViewController {
 
         exchange.sell(player, shareToSell);
     }
-
 }

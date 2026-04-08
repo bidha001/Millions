@@ -201,99 +201,65 @@ public class WindowView extends Application {
                 nextWeekButton
         );
 
+        // next week button action
         nextWeekButton.setOnAction(e -> {
-            controller.nextWeek();
-            updatePlayerInfo();
-            updatePortfolioTable();
-            updateTransactionTable();
-            stockTable.refresh();
-        });
-
-        buyButton.setOnAction(e -> {
-
-            if (controller.getPlayer() == null) {
-                new Alert(Alert.AlertType.WARNING, "Start a game first!").showAndWait();
-                return;
-            }
-
-            Stock selectedStock = stockTable.getSelectionModel().getSelectedItem();
-
-            if (selectedStock == null) {
-                new Alert(Alert.AlertType.WARNING, "Select a stock first!").showAndWait();
-                return;
-            }
-
             try {
-                BigDecimal quantity = new BigDecimal(quantityField.getText());
+                controller.nextWeek();
 
-                if (quantity.compareTo(BigDecimal.ZERO) <= 0) {
-                    new Alert(Alert.AlertType.WARNING, "Quantity must be greater than 0!")
-                            .showAndWait();
-                    return;
-                }
-
-                Share share = new Share(
-                        selectedStock,
-                        quantity,
-                        selectedStock.getSalesPrice(),
-                        null
-                );
-
-                controller.buy(share);
                 updatePlayerInfo();
                 updatePortfolioTable();
                 updateTransactionTable();
+                stockTable.refresh();
+
+            } catch (Exception ex) {
+                new Alert(Alert.AlertType.ERROR, ex.getMessage()).showAndWait();
+            }
+        });
+        // buy button action
+        buyButton.setOnAction(e -> {
+
+            try {
+                Stock selectedStock = stockTable.getSelectionModel().getSelectedItem();
+                String quantity = quantityField.getText().trim();
+
+                controller.buy(selectedStock, quantity);
+
+                updatePlayerInfo();
+                updatePortfolioTable();
+                updateTransactionTable();
+                stockTable.refresh();
                 quantityField.clear();
 
             } catch (Exception ex) {
-                new Alert(Alert.AlertType.ERROR, "Invalid quantity!")
+                new Alert(Alert.AlertType.ERROR, ex.getMessage())
                         .showAndWait();
             }
         });
 
+        // sell button action
         sellButton.setOnAction(e -> {
 
-            if (controller.getPlayer() == null) {
-                new Alert(Alert.AlertType.WARNING, "Start a game first!")
-                        .showAndWait();
-                return;
-            }
-
-            Share selectedShare = portfolioTable.getSelectionModel().getSelectedItem();
-
-            if (selectedShare == null) {
-                new Alert(Alert.AlertType.WARNING, "Select a share from portfolio!")
-                        .showAndWait();
-                return;
-            }
-
             try {
-                BigDecimal quantity = new BigDecimal(quantityField.getText());
+                Share selectedShare = portfolioTable.getSelectionModel().getSelectedItem();
 
-                if (quantity.compareTo(BigDecimal.ZERO) <= 0) {
-                    new Alert(Alert.AlertType.WARNING, "Quantity must be greater than 0!")
+                if (selectedShare == null) {
+                    new Alert(Alert.AlertType.WARNING, "Select a share first!")
                             .showAndWait();
                     return;
                 }
 
-                //
-                if (quantity.compareTo(selectedShare.getQuantity()) > 0) {
-                    new Alert(Alert.AlertType.ERROR, "You don't own that many shares!")
-                            .showAndWait();
-                    return;
-                }
+                String quantity = quantityField.getText().trim();
 
                 controller.sell(selectedShare.getStock(), quantity);
 
                 updatePlayerInfo();
                 updatePortfolioTable();
                 updateTransactionTable();
+                stockTable.refresh();
                 quantityField.clear();
 
             } catch (Exception ex) {
-                ex.printStackTrace();
-                new Alert(Alert.AlertType.ERROR, ex.getMessage())
-                        .showAndWait();
+                new Alert(Alert.AlertType.ERROR, ex.getMessage()).showAndWait();
             }
         });
 

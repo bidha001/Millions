@@ -15,7 +15,7 @@ public class PortfolioTest {
         Portfolio portfolio = new Portfolio();
 
         Stock stock = new Stock("Apple", "AAPL", new BigDecimal("150"));
-        Share share = new Share(stock, new BigDecimal("10"), new BigDecimal("150"));
+        Share share = new Share(stock, new BigDecimal("10"), new BigDecimal("150"), null);
 
         portfolio.addShare(share);
 
@@ -28,7 +28,7 @@ public class PortfolioTest {
         Portfolio portfolio = new Portfolio();
 
         Stock stock = new Stock("Apple", "AAPL", new BigDecimal("150"));
-        Share share = new Share(stock, new BigDecimal("10"), new BigDecimal("150"));
+        Share share = new Share(stock, new BigDecimal("10"), new BigDecimal("150"), null);
 
         portfolio.addShare(share);
 
@@ -41,7 +41,7 @@ public class PortfolioTest {
         Portfolio portfolio = new Portfolio();
 
         Stock stock = new Stock("Apple", "AAPL", new BigDecimal("150"));
-        Share share = new Share(stock, new BigDecimal("10"), new BigDecimal("150"));
+        Share share = new Share(stock, new BigDecimal("10"), new BigDecimal("150"), null);
 
         portfolio.addShare(share);
         portfolio.removeShare(share);
@@ -56,8 +56,8 @@ public class PortfolioTest {
 
         Stock stock = new Stock("Apple", "AAPL", new BigDecimal("150"));
 
-        Share share1 = new Share(stock, new BigDecimal("10"), new BigDecimal("150"));
-        Share share2 = new Share(stock, new BigDecimal("5"), new BigDecimal("150"));
+        Share share1 = new Share(stock, new BigDecimal("10"), new BigDecimal("150"), null);
+        Share share2 = new Share(stock, new BigDecimal("5"), new BigDecimal("150"), null);
 
         portfolio.addShare(share1);
         portfolio.addShare(share2);
