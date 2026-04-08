@@ -15,6 +15,7 @@ import javafx.stage.Stage;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -53,7 +54,7 @@ public class WindowView extends Application {
 
         // LEFT - PLAYER DETAILS
         VBox left = new VBox(15);
-        left.setPrefWidth(150);
+        left.setPrefWidth(200);
         left.setStyle("-fx-padding: 15;");
 
         nameLabel = new Label("Name: ");
@@ -307,10 +308,10 @@ public class WindowView extends Application {
                         selectedLabel.setText("Selected: " + newStock.getSymbol());
 
                         detailsLabel.setText(
-                                "Price: " + newStock.getSalesPrice()
-                                        + " | High: " + newStock.getHighestPrice()
-                                        + " | Low: " + newStock.getLowestPrice()
-                                        + " | Change: " + newStock.getLatestPriceChange()
+                                "Price: " + format(newStock.getSalesPrice())
+                                        + " | High: " + format(newStock.getHighestPrice())
+                                        + " | Low: " + format(newStock.getLowestPrice())
+                                        + " | Change: " + format(newStock.getLatestPriceChange())
                         );
                     }
                 }
@@ -422,6 +423,12 @@ public class WindowView extends Application {
 
                 String name = nameField.getText();
 
+                if (!name.matches("[a-zA-Z ]+")) {
+                    new Alert(Alert.AlertType.ERROR, "Name must contain only letters!")
+                            .showAndWait();
+                    return null;
+                }
+
                 try {
                     BigDecimal money = new BigDecimal(moneyField.getText());
 
@@ -502,7 +509,7 @@ public class WindowView extends Application {
         netWorthLabel.setText("Net Worth: " + controller.getPlayer().getNetWorth());
         weekLabel.setText("Week: " + controller.getExchange().getWeek());
 
-        int weeksPlayed = controller.getPlayer().getArchive().countDistinctWeeks();
+        int weeksPlayed = controller.getExchange().getWeek();
         statusLabel.setText("Status: " + controller.getPlayer().getStatus(weeksPlayed));
     }
 
@@ -522,6 +529,10 @@ public class WindowView extends Application {
         transactionTable.getItems().addAll(
                 controller.getPlayer().getArchive().getTransactions()
         );
+    }
+
+    private String format(BigDecimal value) {
+        return value.setScale(2, RoundingMode.HALF_UP).toString();
     }
 
     public static void main(String[] args) {

@@ -18,11 +18,38 @@ public class Portfolio {
     }
 
     /**
-     * Adds a share to the portfolio.
+     * Adds a share to the portfolio. If a share with the same stock symbol already exists,
+     * it merges the quantities and keeps the original purchase price.
      *
      * @param share the share to add
      */
     public void addShare(Share share) {
+
+        for (Share existing : shares) {
+
+            if (existing.getStock().getSymbol()
+                    .equals(share.getStock().getSymbol())) {
+
+                // merge quantities
+                BigDecimal newQuantity =
+                        existing.getQuantity().add(share.getQuantity());
+
+                // remove old share
+                shares.remove(existing);
+
+                // add merged share
+                shares.add(new Share(
+                        existing.getStock(),
+                        newQuantity,
+                        existing.getPurchasePrice(), // keep original price
+                        null
+                ));
+
+                return;
+            }
+        }
+
+        // if no existing → add normally
         shares.add(share);
     }
 
