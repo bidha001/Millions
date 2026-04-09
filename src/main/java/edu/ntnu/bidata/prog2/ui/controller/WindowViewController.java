@@ -18,11 +18,27 @@ public class WindowViewController {
     private Player player;
     private Exchange exchange;
 
-    public void startNewGame(String name, BigDecimal startingMoney) {
+    public void startNewGame(String name, String moneyInput) {
+
+        if (name == null || !name.matches("[a-zA-Z ]+")) {
+            throw new IllegalArgumentException("Name must contain only letters!");
+        }
+
+        BigDecimal money;
+
+        try {
+            money = new BigDecimal(moneyInput);
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Invalid input for money!");
+        }
+
+        if (money.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Money must be greater than 0!");
+        }
 
         Map<String, Stock> stocks = loadStocks();
 
-        this.player = new Player(name, startingMoney);
+        this.player = new Player(name, money);
         this.exchange = new Exchange("Market", stocks);
     }
 

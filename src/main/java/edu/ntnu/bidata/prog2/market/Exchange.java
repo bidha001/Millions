@@ -119,7 +119,7 @@ public class Exchange {
 
             stock.addNewSalesPrice(newPrice);
 
-            System.out.println(stock.getSymbol() + " → " + newPrice);
+            // System.out.println(stock.getSymbol() + " → " + newPrice);
         }
     }
 

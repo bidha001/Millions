@@ -12,13 +12,8 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class WindowView extends Application {
@@ -217,9 +212,13 @@ public class WindowView extends Application {
 
             try {
                 Stock selectedStock = stockTable.getSelectionModel().getSelectedItem();
+
                 String quantity = quantityField.getText().trim();
 
-                controller.buy(selectedStock, quantity);
+                controller.buy(
+                        selectedStock != null ? selectedStock : null,
+                        quantity
+                );
 
                 updatePlayerInfo();
                 updatePortfolioTable();
@@ -239,15 +238,12 @@ public class WindowView extends Application {
             try {
                 Share selectedShare = portfolioTable.getSelectionModel().getSelectedItem();
 
-                if (selectedShare == null) {
-                    new Alert(Alert.AlertType.WARNING, "Select a share first!")
-                            .showAndWait();
-                    return;
-                }
-
                 String quantity = quantityField.getText().trim();
 
-                controller.sell(selectedShare.getStock(), quantity);
+                controller.sell(
+                        selectedShare != null ? selectedShare.getStock() : null,
+                        quantity
+                );
 
                 updatePlayerInfo();
                 updatePortfolioTable();
@@ -383,19 +379,11 @@ public class WindowView extends Application {
 
         dialog.setResultConverter(button -> {
             if (button == startsButton) {
-
                 String name = nameField.getText();
 
-                if (!name.matches("[a-zA-Z ]+")) {
-                    new Alert(Alert.AlertType.ERROR, "Name must contain only letters!")
-                            .showAndWait();
-                    return null;
-                }
-
                 try {
-                    BigDecimal money = new BigDecimal(moneyField.getText());
+                    controller.startNewGame(name, moneyField.getText());
 
-                    controller.startNewGame(name, money);
                     stockTable.getItems().clear();
                     stockTable.getItems().addAll(
                             controller.searchStocks("")
@@ -410,7 +398,7 @@ public class WindowView extends Application {
                     updateTransactionTable();
 
                 } catch (Exception e) {
-                    new Alert(Alert.AlertType.ERROR, "Invalid input for money!").showAndWait();
+                    new Alert(Alert.AlertType.ERROR, e.getMessage()).showAndWait();
                 }
             }
             return null;
