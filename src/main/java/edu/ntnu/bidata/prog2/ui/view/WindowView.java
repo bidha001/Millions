@@ -106,12 +106,9 @@ public class WindowView extends Application {
         search.textProperty().addListener((observable, oldValue, newValue) -> {
 
             stockTable.getItems().clear();
-
-            if (controller.getExchange() != null) {
-                stockTable.getItems().addAll(
-                        controller.getExchange().findStocks(newValue)
-                );
-            }
+            stockTable.getItems().addAll(
+                    controller.searchStocks(newValue)
+            );
         });
 
         stockTable.setPrefSize(250, 245);
@@ -398,9 +395,11 @@ public class WindowView extends Application {
                 try {
                     BigDecimal money = new BigDecimal(moneyField.getText());
 
-                    controller.startNewGame(name, money, loadStocksAsMap());
+                    controller.startNewGame(name, money);
                     stockTable.getItems().clear();
-                    stockTable.getItems().addAll(controller.getExchange().findStocks(""));
+                    stockTable.getItems().addAll(
+                            controller.searchStocks("")
+                    );
 
                     buyButton.setDisable(false);
                     sellButton.setDisable(false);
@@ -421,79 +420,29 @@ public class WindowView extends Application {
     }
 
 
-    private Map<String, Stock> loadStocksAsMap() {
-        Map<String, Stock> map = new HashMap<>();
-
-        for (Stock stock : loadStocksFromCSV()) {
-            map.put(stock.getSymbol(), stock);
-        }
-
-        return map;
-    }
-
-    private List<Stock> loadStocksFromCSV() {
-        List<Stock> stocks = new ArrayList<>();
-
-        try (BufferedReader reader = new BufferedReader(
-                new InputStreamReader(getClass().getResourceAsStream("/Stocks.csv"))
-        )) {
-
-            String line;
-            while ((line = reader.readLine()) != null) {
-
-                // skip comments and empty lines
-                if (line.startsWith("#") || line.trim().isEmpty()) {
-                    continue;
-                }
-
-                String[] parts = line.split(",");
-
-                if (parts.length < 3) {
-                    continue;
-                }
-
-                String symbol = parts[0];
-                String name = parts[1];
-                double price = Double.parseDouble(parts[2]);
-
-                Stock stock = new Stock(name, symbol, new BigDecimal(price));
-                stocks.add(stock);
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return stocks;
-    }
 
     private void updatePlayerInfo() {
-        if (controller.getPlayer() == null) return;
 
-        nameLabel.setText("Name: " + controller.getPlayer().getName());
-        moneyLabel.setText("Money: " + controller.getPlayer().getMoney());
-        netWorthLabel.setText("Net Worth: " + controller.getPlayer().getNetWorth());
-        weekLabel.setText("Week: " + controller.getExchange().getWeek());
+        Map<String, String> info = controller.getPlayerInfo();
 
-        int weeksPlayed = controller.getExchange().getWeek();
-        statusLabel.setText("Status: " + controller.getPlayer().getStatus(weeksPlayed));
+        nameLabel.setText("Name: " + info.get("name"));
+        moneyLabel.setText("Money: " + info.get("money"));
+        netWorthLabel.setText("Net Worth: " + info.get("netWorth"));
+        statusLabel.setText("Status: " + info.get("status"));
+        weekLabel.setText("Week: " + info.get("week"));
     }
 
     private void updatePortfolioTable() {
-        if (controller.getPlayer() == null) return;
-
         portfolioTable.getItems().clear();
         portfolioTable.getItems().addAll(
-                controller.getPlayer().getPortfolio().getAllShares()
+                controller.getPortfolioData()
         );
     }
 
     private void updateTransactionTable() {
-        if (controller.getPlayer() == null) return;
-
         transactionTable.getItems().clear();
         transactionTable.getItems().addAll(
-                controller.getPlayer().getArchive().getTransactions()
+                controller.getTransactionData()
         );
     }
 
