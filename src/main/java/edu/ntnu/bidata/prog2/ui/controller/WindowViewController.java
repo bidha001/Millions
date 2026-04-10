@@ -127,14 +127,14 @@ public class WindowViewController {
         exchange.buy(player, share);
     }
 
-    public void sell(Stock stock, String quantityInput) {
+    public void sell(Share selectedShare, String quantityInput) {
 
         if (player == null) {
             throw new IllegalArgumentException("Start a game first!");
         }
 
-        if (stock == null) {
-            throw new IllegalArgumentException("Select a stock first!");
+        if (selectedShare == null) {
+            throw new IllegalArgumentException("Select a share first!");
         }
 
         BigDecimal quantity;
@@ -148,6 +148,8 @@ public class WindowViewController {
         if (quantity.compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("Quantity must be greater than 0!");
         }
+
+        Stock stock = selectedShare.getStock();
 
         Share existingShare = player.getPortfolio().getShareByStock(stock);
 

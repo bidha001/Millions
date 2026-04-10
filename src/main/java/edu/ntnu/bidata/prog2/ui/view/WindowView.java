@@ -215,10 +215,7 @@ public class WindowView extends Application {
 
                 String quantity = quantityField.getText().trim();
 
-                controller.buy(
-                        selectedStock != null ? selectedStock : null,
-                        quantity
-                );
+                controller.buy(selectedStock, quantity);
 
                 updatePlayerInfo();
                 updatePortfolioTable();
@@ -240,10 +237,7 @@ public class WindowView extends Application {
 
                 String quantity = quantityField.getText().trim();
 
-                controller.sell(
-                        selectedShare != null ? selectedShare.getStock() : null,
-                        quantity
-                );
+                controller.sell(selectedShare, quantity);
 
                 updatePlayerInfo();
                 updatePortfolioTable();
