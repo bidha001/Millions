@@ -3,8 +3,10 @@ package edu.ntnu.bidata.prog2.market;
 import edu.ntnu.bidata.prog2.model.Player;
 import edu.ntnu.bidata.prog2.model.Share;
 import edu.ntnu.bidata.prog2.model.Stock;
-import edu.ntnu.bidata.prog2.transaction.Purchase;
-import edu.ntnu.bidata.prog2.transaction.Sale;
+import edu.ntnu.bidata.prog2.observer.GameEvent;
+import edu.ntnu.bidata.prog2.observer.Observable;
+import edu.ntnu.bidata.prog2.transaction.Transaction;
+import edu.ntnu.bidata.prog2.transaction.TransactionFactory;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -16,7 +18,7 @@ import java.util.Random;
 /**
  * Represents a stock exchange where players can buy and sell shares.
  */
-public class Exchange {
+public class Exchange extends Observable {
     private final String name;
     private final Map<String, Stock> stocks;
     private int week;
@@ -117,6 +119,7 @@ public class Exchange {
 
             stock.addNewSalesPrice(newPrice);
         }
+        notifyObservers(GameEvent.WEEK_ADVANCED);
     }
 
     /**
@@ -126,8 +129,11 @@ public class Exchange {
      * @param share  The share being bought.
      */
     public void buy(Player player, Share share) {
-        Purchase purchase = new Purchase(share, week);
+        Transaction purchase = TransactionFactory.create(
+                TransactionFactory.Type.PURCHASE, share, week);
         purchase.commit(player);
+
+        notifyObservers(GameEvent.TRANSACTION_COMPLETED);
     }
 
     /**
@@ -137,8 +143,11 @@ public class Exchange {
      * @param share  The share being sold.
      */
     public void sell(Player player, Share share) {
-        Sale sale = new Sale(share, week);
+        Transaction sale = TransactionFactory.create(
+                TransactionFactory.Type.SALE, share, week);
         sale.commit(player);
+
+        notifyObservers(GameEvent.TRANSACTION_COMPLETED);
     }
 
     /**

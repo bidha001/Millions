@@ -6,6 +6,7 @@ import edu.ntnu.bidata.prog2.market.Exchange;
 import edu.ntnu.bidata.prog2.model.Player;
 import edu.ntnu.bidata.prog2.model.Share;
 import edu.ntnu.bidata.prog2.model.Stock;
+import edu.ntnu.bidata.prog2.observer.GameObserver;
 import edu.ntnu.bidata.prog2.transaction.Transaction;
 
 import java.io.IOException;
@@ -247,5 +248,17 @@ public class WindowViewController {
         }
 
         return player.getArchive().getTransactions();
+    }
+
+    /**
+     * Registers an observer to be notified of changes in the game model.
+     * Call this after startNewGame() — before that, no exchange exists yet.
+     *
+     * @param observer the observer to register
+     */
+    public void addGameObserver(GameObserver observer) {
+        if (exchange != null) {
+            exchange.addObserver(observer);
+        }
     }
 }

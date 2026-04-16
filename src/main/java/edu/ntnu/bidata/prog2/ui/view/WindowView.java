@@ -2,6 +2,8 @@ package edu.ntnu.bidata.prog2.ui.view;
 
 import edu.ntnu.bidata.prog2.model.Share;
 import edu.ntnu.bidata.prog2.model.Stock;
+import edu.ntnu.bidata.prog2.observer.GameEvent;
+import edu.ntnu.bidata.prog2.observer.GameObserver;
 import edu.ntnu.bidata.prog2.transaction.Transaction;
 import edu.ntnu.bidata.prog2.ui.controller.WindowViewController;
 import javafx.application.Application;
@@ -20,9 +22,9 @@ import java.util.Map;
 
 /**
  * The main window view for the Millions stock market game.
- * Displays player info, stocks, portfolio, selected stock details, and transactions.
+ * Implements GameObserver so it automatically refreshes when the model changes.
  */
-public class WindowView extends Application {
+public class WindowView extends Application implements GameObserver {
     private WindowViewController controller;
     private TableView<Stock> stockTable;
     private TableView<Share> portfolioTable;
@@ -197,33 +199,22 @@ public class WindowView extends Application {
                 nextWeekButton
         );
 
-        // next week button action
+        // next week button action — no more manual UI refresh (observer does it)
         nextWeekButton.setOnAction(e -> {
             try {
                 controller.nextWeek();
-
-                updatePlayerInfo();
-                updatePortfolioTable();
-                updateTransactionTable();
-                stockTable.refresh();
-
             } catch (Exception ex) {
                 new Alert(Alert.AlertType.ERROR, ex.getMessage()).showAndWait();
             }
         });
 
-        // buy button action
+        // buy button action — no more manual UI refresh (observer does it)
         buyButton.setOnAction(e -> {
             try {
                 Stock selectedStock = stockTable.getSelectionModel().getSelectedItem();
                 String quantity = quantityField.getText().trim();
 
                 controller.buy(selectedStock, quantity);
-
-                updatePlayerInfo();
-                updatePortfolioTable();
-                updateTransactionTable();
-                stockTable.refresh();
                 quantityField.clear();
 
             } catch (Exception ex) {
@@ -231,18 +222,13 @@ public class WindowView extends Application {
             }
         });
 
-        // sell button action
+        // sell button action — no more manual UI refresh (observer does it)
         sellButton.setOnAction(e -> {
             try {
                 Share selectedShare = portfolioTable.getSelectionModel().getSelectedItem();
                 String quantity = quantityField.getText().trim();
 
                 controller.sell(selectedShare, quantity);
-
-                updatePlayerInfo();
-                updatePortfolioTable();
-                updateTransactionTable();
-                stockTable.refresh();
                 quantityField.clear();
 
             } catch (Exception ex) {
@@ -405,18 +391,15 @@ public class WindowView extends Application {
                             fileField.getText()
                     );
 
-                    stockTable.getItems().clear();
-                    stockTable.getItems().addAll(
-                            controller.searchStocks("")
-                    );
+                    // Register this view as an observer of the new game's Exchange
+                    controller.addGameObserver(this);
 
                     buyButton.setDisable(false);
                     sellButton.setDisable(false);
                     nextWeekButton.setDisable(false);
 
-                    updatePlayerInfo();
-                    updatePortfolioTable();
-                    updateTransactionTable();
+                    // Trigger the first UI update manually via the observer method
+                    onGameChanged(GameEvent.GAME_STARTED);
 
                 } catch (Exception e) {
                     new Alert(Alert.AlertType.ERROR, e.getMessage()).showAndWait();
@@ -426,6 +409,38 @@ public class WindowView extends Application {
         });
 
         dialog.showAndWait();
+    }
+
+    /**
+     * Called by the model (Exchange) whenever the game state changes.
+     * This is the central place where the UI is refreshed — replacing
+     * the manual updatePlayerInfo() / updatePortfolioTable() calls that
+     * used to live in every button handler.
+     *
+     * @param event the type of change that occurred
+     */
+    @Override
+    public void onGameChanged(GameEvent event) {
+        switch (event) {
+            case GAME_STARTED -> {
+                stockTable.getItems().clear();
+                stockTable.getItems().addAll(controller.searchStocks(""));
+                updatePlayerInfo();
+                updatePortfolioTable();
+                updateTransactionTable();
+            }
+            case TRANSACTION_COMPLETED -> {
+                updatePlayerInfo();
+                updatePortfolioTable();
+                updateTransactionTable();
+                stockTable.refresh();
+            }
+            case WEEK_ADVANCED -> {
+                updatePlayerInfo();
+                updatePortfolioTable();
+                stockTable.refresh();
+            }
+        }
     }
 
     private void updatePlayerInfo() {
