@@ -6,24 +6,33 @@ import edu.ntnu.bidata.prog2.model.Share;
 
 import java.math.BigDecimal;
 
-/***
- * Represents a sale of a share.
+/**
+ * Represents a sale transaction where a player sells shares.
  */
 public class Sale extends Transaction {
+
+    /**
+     * Constructs a new Sale transaction for the given share and week.
+     *
+     * @param share The share being sold.
+     * @param week  The week number when the sale is made.
+     */
     public Sale(Share share, int week) {
         super(share, week, new SaleCalculator(share));
     }
 
-
     /**
-     * Commits the sale transaction by updating the player's money and portfolio.
+     * Commits the sale transaction by adding the total value to the player's money,
+     * removing the share from the player's portfolio, and recording the transaction
+     * in the player's archive.
      *
-     * @param player  the player executing the transaction
-     * @param archive the transaction archive to record the transaction
-     * @throws IllegalStateException if the transaction has already been committed, if the player doesn't own the share, or if the player doesn't own enough shares
+     * @param player The player executing the sale.
+     * @throws IllegalStateException if the transaction has already been committed,
+     *                               if the player does not own the share,
+     *                               or if the player does not own enough shares.
      */
     @Override
-    public void commit(Player player, TransactionArchive archive) {
+    public void commit(Player player) {
 
         if (committed) {
             throw new IllegalStateException("Transaction already committed!");
@@ -60,6 +69,6 @@ public class Sale extends Transaction {
         }
 
         committed = true;
-        archive.addTransaction(this);
+        player.getArchive().addTransaction(this);
     }
 }

@@ -14,7 +14,7 @@ public class TransactionArchive {
     /**
      * Constructs a new TransactionArchive with an empty list of transactions.
      */
-    public TransactionArchive(){
+    public TransactionArchive() {
         this.transactions = new ArrayList<>();
     }
 
@@ -27,8 +27,12 @@ public class TransactionArchive {
         this.transactions.add(transaction);
     }
 
-
-     public List<Transaction> getTransactions() {
+    /**
+     * Retrieves a copy of all transactions in the archive.
+     *
+     * @return a list containing all transactions in the archive
+     */
+    public List<Transaction> getTransactions() {
         return new ArrayList<>(transactions);
     }
 
@@ -37,7 +41,7 @@ public class TransactionArchive {
      *
      * @return the number of distinct weeks
      */
-    public int countDistinctWeeks(){
+    public int countDistinctWeeks() {
         Set<Integer> weeks = new HashSet<>();
 
         for (Transaction transaction : transactions) {

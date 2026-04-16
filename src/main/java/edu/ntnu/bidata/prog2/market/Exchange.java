@@ -5,14 +5,13 @@ import edu.ntnu.bidata.prog2.model.Share;
 import edu.ntnu.bidata.prog2.model.Stock;
 import edu.ntnu.bidata.prog2.transaction.Purchase;
 import edu.ntnu.bidata.prog2.transaction.Sale;
-import edu.ntnu.bidata.prog2.transaction.TransactionArchive;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
-import java.math.RoundingMode;
 
 /**
  * Represents a stock exchange where players can buy and sell shares.
@@ -64,7 +63,7 @@ public class Exchange {
         return stocks.get(symbol);
     }
 
-   /**
+    /**
      * Finds stocks whose symbol or company name contains the given search string (case-insensitive).
      *
      * @param search The search string to look for in stock symbols and company names.
@@ -90,10 +89,9 @@ public class Exchange {
 
     /**
      * Advances the game by one week, updating the sales price of each stock based on a random percentage change.
-     * The price change is between -5% and +5%, and the new price is rounded to 2 decimal places.
-     * The price will not go below 1.00.
+     * The new price is rounded to 2 decimal places and will not go below 1.00.
      */
-    public void advance(){
+    public void advance() {
         week++;
 
         for (Stock stock : stocks.values()) {
@@ -118,31 +116,29 @@ public class Exchange {
             }
 
             stock.addNewSalesPrice(newPrice);
-
-            // System.out.println(stock.getSymbol() + " → " + newPrice);
         }
     }
 
     /**
-     * Allows a player to buy shares of a stock. The purchase is recorded in the transaction archive.
+     * Allows a player to buy shares of a stock. The purchase is recorded in the player's transaction archive.
      *
      * @param player The player who is buying the shares.
-     * @param share  The share being purchased.
+     * @param share  The share being bought.
      */
     public void buy(Player player, Share share) {
         Purchase purchase = new Purchase(share, week);
-        purchase.commit(player, player.getArchive());
+        purchase.commit(player);
     }
 
     /**
-     * Allows a player to sell shares of a stock. The sale is recorded in the transaction archive.
+     * Allows a player to sell shares of a stock. The sale is recorded in the player's transaction archive.
      *
      * @param player The player who is selling the shares.
      * @param share  The share being sold.
      */
     public void sell(Player player, Share share) {
         Sale sale = new Sale(share, week);
-        sale.commit(player, player.getArchive());
+        sale.commit(player);
     }
 
     /**

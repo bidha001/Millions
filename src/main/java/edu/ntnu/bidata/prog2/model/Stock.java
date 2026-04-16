@@ -116,6 +116,13 @@ public class Stock {
         return latest.subtract(previous);
     }
 
+
+    /**
+     * Updates the trend of the stock based on a random value.
+     * The trend is adjusted by a small random amount, and is constrained to be between -0.05 and 0.05.
+     *
+     * @param random A Random object used to generate random values for updating the trend.
+     */
     public void updateTrend(java.util.Random random) {
         trend += (random.nextDouble() - 0.5) * 0.02;
 
@@ -123,6 +130,12 @@ public class Stock {
         if (trend < -0.05) trend = -0.05;
     }
 
+    /**
+     * Retrieves the current trend of the stock,
+     * which is a value between -0.05 and 0.05 indicating the general direction of the stock's price movement.
+     *
+     * @return The current trend of the stock.
+     */
     public double getTrend() {
         return trend;
     }

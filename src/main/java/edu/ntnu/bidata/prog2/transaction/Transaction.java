@@ -65,11 +65,10 @@ public abstract class Transaction {
     }
 
     /**
-     * Commits the transaction for the given player and archives it.
-     * If the transaction has already been committed, it does nothing.
+     * Commits the transaction, applying its effects to the player's portfolio and cash balance.
+     * The transaction is also recorded in the player's transaction archive.
      *
-     * @param player  The player committing the transaction.
-     * @param archive The transaction archive to which this transaction will be added after committing.
+     * @param player The player for whom the transaction is being committed.
      */
-    public abstract void commit(Player player, TransactionArchive archive);
+    public abstract void commit(Player player);
 }

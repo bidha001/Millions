@@ -10,12 +10,18 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
+import java.io.File;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Map;
 
+/**
+ * The main window view for the Millions stock market game.
+ * Displays player info, stocks, portfolio, selected stock details, and transactions.
+ */
 public class WindowView extends Application {
     private WindowViewController controller;
     private TableView<Stock> stockTable;
@@ -61,7 +67,7 @@ public class WindowView extends Application {
         Button startButton = new Button("New Game");
         startButton.setMaxWidth(Double.MAX_VALUE);
 
-        startButton.setOnAction(e-> showStartDialog(stage));
+        startButton.setOnAction(e -> showStartDialog(stage));
 
         left.getChildren().addAll(
                 nameLabel, moneyLabel, netWorthLabel, statusLabel, weekLabel, startButton
@@ -97,9 +103,7 @@ public class WindowView extends Application {
 
         stockTable.getColumns().addAll(symbolCol, priceCol, changeCol);
 
-
         search.textProperty().addListener((observable, oldValue, newValue) -> {
-
             stockTable.getItems().clear();
             stockTable.getItems().addAll(
                     controller.searchStocks(newValue)
@@ -207,12 +211,11 @@ public class WindowView extends Application {
                 new Alert(Alert.AlertType.ERROR, ex.getMessage()).showAndWait();
             }
         });
+
         // buy button action
         buyButton.setOnAction(e -> {
-
             try {
                 Stock selectedStock = stockTable.getSelectionModel().getSelectedItem();
-
                 String quantity = quantityField.getText().trim();
 
                 controller.buy(selectedStock, quantity);
@@ -224,17 +227,14 @@ public class WindowView extends Application {
                 quantityField.clear();
 
             } catch (Exception ex) {
-                new Alert(Alert.AlertType.ERROR, ex.getMessage())
-                        .showAndWait();
+                new Alert(Alert.AlertType.ERROR, ex.getMessage()).showAndWait();
             }
         });
 
         // sell button action
         sellButton.setOnAction(e -> {
-
             try {
                 Share selectedShare = portfolioTable.getSelectionModel().getSelectedItem();
-
                 String quantity = quantityField.getText().trim();
 
                 controller.sell(selectedShare, quantity);
@@ -256,7 +256,6 @@ public class WindowView extends Application {
 
         stockTable.getSelectionModel().selectedItemProperty().addListener(
                 (obs, oldStock, newStock) -> {
-
                     if (newStock != null) {
                         selectedLabel.setText("Selected: " + newStock.getSymbol());
 
@@ -347,36 +346,64 @@ public class WindowView extends Application {
         stage.show();
     }
 
+    /**
+     * Shows the "Start New Game" dialog where the user enters their name, starting money,
+     * and selects a stock data file from anywhere on the computer.
+     *
+     * @param owner the owner stage for the dialog
+     */
     private void showStartDialog(Stage owner) {
 
         Dialog<Void> dialog = new Dialog<>();
         dialog.setTitle("Start New Game");
+        dialog.initOwner(owner);
 
         TextField nameField = new TextField();
         TextField moneyField = new TextField();
+        TextField fileField = new TextField();
 
         nameField.setPromptText("Enter name");
         moneyField.setPromptText("Enter starting money");
+        fileField.setPromptText("No file selected");
+        fileField.setEditable(false);
+        fileField.setPrefWidth(300);
+
+        Button browseButton = new Button("Browse...");
+        browseButton.setOnAction(e -> {
+            FileChooser chooser = new FileChooser();
+            chooser.setTitle("Select Stock Data File");
+            chooser.getExtensionFilters().add(
+                    new FileChooser.ExtensionFilter("CSV Files", "*.csv"));
+
+            File file = chooser.showOpenDialog(dialog.getDialogPane().getScene().getWindow());
+            if (file != null) {
+                fileField.setText(file.getAbsolutePath());
+            }
+        });
+
+        HBox fileRow = new HBox(10, fileField, browseButton);
 
         VBox content = new VBox(10);
         content.getChildren().addAll(
                 new Label("Name:"), nameField,
-                new Label("Money:"), moneyField
+                new Label("Money:"), moneyField,
+                new Label("Stock data file:"), fileRow
         );
 
         dialog.getDialogPane().setContent(content);
 
         ButtonType startsButton = new ButtonType("Start", ButtonBar.ButtonData.OK_DONE);
-        dialog.getDialogPane().getButtonTypes().add(startsButton);
-
-        dialog.initOwner(owner);
+        ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+        dialog.getDialogPane().getButtonTypes().addAll(startsButton, cancelButton);
 
         dialog.setResultConverter(button -> {
             if (button == startsButton) {
-                String name = nameField.getText();
-
                 try {
-                    controller.startNewGame(name, moneyField.getText());
+                    controller.startNewGame(
+                            nameField.getText(),
+                            moneyField.getText(),
+                            fileField.getText()
+                    );
 
                     stockTable.getItems().clear();
                     stockTable.getItems().addAll(
@@ -400,8 +427,6 @@ public class WindowView extends Application {
 
         dialog.showAndWait();
     }
-
-
 
     private void updatePlayerInfo() {
 

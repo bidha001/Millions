@@ -10,20 +10,28 @@ import java.math.BigDecimal;
  * Represents a purchase transaction where a player buys shares.
  */
 public class Purchase extends Transaction {
+
+    /**
+     * Constructs a new Purchase transaction for the given share and week.
+     *
+     * @param share The share being purchased.
+     * @param week  The week number when the purchase is made.
+     */
     public Purchase(Share share, int week) {
         super(share, week, new PurchaseCalculator(share));
     }
 
     /**
-     * Commits the purchase transaction by deducting the total cost from the player's money and adding the share to the player's portfolio.
-     * Also adds the transaction to the transaction archive.
+     * Commits the purchase transaction by deducting the total cost from the player's money,
+     * adding the share to the player's portfolio, and recording the transaction in the
+     * player's archive.
      *
-     * @param player  The player making the purchase.
-     * @param archive The transaction archive to record the transaction.
-     * @throws IllegalStateException if the player does not have enough money to complete the purchase.
+     * @param player The player making the purchase.
+     * @throws IllegalStateException if the transaction has already been committed,
+     *                               or if the player does not have enough money.
      */
     @Override
-    public void commit(Player player, TransactionArchive archive) {
+    public void commit(Player player) {
 
         if (committed) {
             throw new IllegalStateException("Transaction already committed!");
@@ -39,6 +47,6 @@ public class Purchase extends Transaction {
         player.getPortfolio().addShare(share);
 
         committed = true;
-        archive.addTransaction(this);
+        player.getArchive().addTransaction(this);
     }
 }

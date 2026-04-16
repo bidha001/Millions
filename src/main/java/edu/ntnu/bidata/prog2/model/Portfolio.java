@@ -72,21 +72,16 @@ public class Portfolio {
         return shares.contains(share);
     }
 
-    /**
-     * Retrieves a list of shares in the portfolio that have the specified stock symbol.
-     *
-     * @param symbol the stock symbol to search for
-     * @return a list of shares with the specified stock symbol
-     */
-    public List<Share> getShares(String symbol) { //return all the shares in the portfolio that have the same stock symbol.
-        List<Share> result = new ArrayList<>();
-        for (Share share : shares) {
-            if (share.getStock().getSymbol().equalsIgnoreCase(symbol)) {
-                result.add(share);
-            }
-        }
-        return result;
-    }
+
+    // public List<Share> getShares(String symbol) { *return all the shares in the portfolio that have the same stock symbol.
+       // List<Share> result = new ArrayList<>();
+      //  for (Share share : shares) {
+        //    if (share.getStock().getSymbol().equalsIgnoreCase(symbol)) {
+          //      result.add(share);
+            //}
+       // }
+       // return result;
+   // }
 
     /**
      * Calculates the total quantity of shares in the portfolio for a specific stock symbol.
