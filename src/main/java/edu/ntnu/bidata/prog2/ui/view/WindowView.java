@@ -16,13 +16,12 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
 import java.io.File;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.Map;
 
 /**
  * The main window view for the Millions stock market game.
  * Implements GameObserver so it automatically refreshes when the model changes.
+ * Contains no business logic — all data preparation is done in the controller.
  */
 public class WindowView extends Application implements GameObserver {
     private WindowViewController controller;
@@ -37,6 +36,10 @@ public class WindowView extends Application implements GameObserver {
     private Label netWorthLabel;
     private Label statusLabel;
     private Label weekLabel;
+    private Label selectedLabel;
+    private Label detailsLabel;
+    private Label gainersLabel;
+    private Label losersLabel;
 
     @Override
     public void start(Stage stage) {
@@ -57,7 +60,7 @@ public class WindowView extends Application implements GameObserver {
 
         // LEFT - PLAYER DETAILS
         VBox left = new VBox(15);
-        left.setPrefWidth(200);
+        left.setPrefWidth(220);
         left.setStyle("-fx-padding: 15;");
 
         nameLabel = new Label("Name: ");
@@ -71,8 +74,32 @@ public class WindowView extends Application implements GameObserver {
 
         startButton.setOnAction(e -> showStartDialog(stage));
 
+        // MARKET MOVERS BOX (now on the left, below the player info)
+        VBox moversBox = new VBox(10);
+
+        HBox moversTitleRow = new HBox(10);
+        moversTitleRow.getChildren().addAll(
+                new Label("📈"),
+                new Label("Market Movers")
+        );
+
+        gainersLabel = new Label("Top Gainers:\n");
+        gainersLabel.setStyle("-fx-text-fill: green;");
+
+        losersLabel = new Label("Top Losers:\n");
+        losersLabel.setStyle("-fx-text-fill: red;");
+
+        moversBox.getChildren().addAll(
+                moversTitleRow,
+                new Separator(),
+                gainersLabel,
+                losersLabel
+        );
+
         left.getChildren().addAll(
-                nameLabel, moneyLabel, netWorthLabel, statusLabel, weekLabel, startButton
+                nameLabel, moneyLabel, netWorthLabel, statusLabel, weekLabel, startButton,
+                new Separator(),
+                moversBox
         );
 
         root.setLeft(left);
@@ -103,7 +130,9 @@ public class WindowView extends Application implements GameObserver {
         changeCol.setCellValueFactory(data ->
                 new SimpleStringProperty(data.getValue().getLatestPriceChange().toString()));
 
-        stockTable.getColumns().addAll(symbolCol, priceCol, changeCol);
+        stockTable.getColumns().add(symbolCol);
+        stockTable.getColumns().add(priceCol);
+        stockTable.getColumns().add(changeCol);
 
         search.textProperty().addListener((observable, oldValue, newValue) -> {
             stockTable.getItems().clear();
@@ -113,7 +142,7 @@ public class WindowView extends Application implements GameObserver {
         });
 
         stockTable.setPrefSize(250, 245);
-        stockTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        stockTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
 
         stocksBox.getChildren().addAll(
                 stocksTitleRow,
@@ -143,16 +172,14 @@ public class WindowView extends Application implements GameObserver {
 
         TableColumn<Share, String> valueCol = new TableColumn<>("Value");
         valueCol.setCellValueFactory(data ->
-                new SimpleStringProperty(
-                        data.getValue().getStock().getSalesPrice()
-                                .multiply(data.getValue().getQuantity())
-                                .toString()
-                ));
+                new SimpleStringProperty(controller.getShareValue(data.getValue())));
 
-        portfolioTable.getColumns().addAll(pSymbolCol, qtyCol, valueCol);
+        portfolioTable.getColumns().add(pSymbolCol);
+        portfolioTable.getColumns().add(qtyCol);
+        portfolioTable.getColumns().add(valueCol);
 
         portfolioTable.setPrefSize(250, 250);
-        portfolioTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        portfolioTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
 
         portfolioBox.getChildren().addAll(
                 portfolioTitleRow,
@@ -161,7 +188,7 @@ public class WindowView extends Application implements GameObserver {
                 portfolioTable
         );
 
-        // MAIN CONTENT (TOP ROW)
+        // MAIN CONTENT (TOP ROW) — back to 2 columns, movers is on the left
         HBox mainContent = new HBox(100, stocksBox, portfolioBox);
         mainContent.setAlignment(Pos.TOP_CENTER);
 
@@ -199,7 +226,7 @@ public class WindowView extends Application implements GameObserver {
                 nextWeekButton
         );
 
-        // next week button action — no more manual UI refresh (observer does it)
+        // next week button action — no manual refresh (observer does it)
         nextWeekButton.setOnAction(e -> {
             try {
                 controller.nextWeek();
@@ -208,28 +235,74 @@ public class WindowView extends Application implements GameObserver {
             }
         });
 
-        // buy button action — no more manual UI refresh (observer does it)
+        // buy button — shows preview, then executes, then shows receipt
         buyButton.setOnAction(e -> {
             try {
                 Stock selectedStock = stockTable.getSelectionModel().getSelectedItem();
                 String quantity = quantityField.getText().trim();
 
+                if (selectedStock == null) {
+                    throw new IllegalArgumentException("Select a stock first!");
+                }
+                if (quantity.isBlank()) {
+                    throw new IllegalArgumentException("Quantity cannot be empty!");
+                }
+
+                String preview = controller.previewPurchase(selectedStock, quantity);
+                Alert confirm = new Alert(Alert.AlertType.CONFIRMATION, preview,
+                        ButtonType.OK, ButtonType.CANCEL);
+                confirm.setTitle("Confirm Purchase");
+                confirm.setHeaderText("Review your purchase");
+
+                if (confirm.showAndWait().orElse(ButtonType.CANCEL) != ButtonType.OK) {
+                    return;
+                }
+
                 controller.buy(selectedStock, quantity);
                 quantityField.clear();
+
+                Alert receipt = new Alert(Alert.AlertType.INFORMATION,
+                        controller.getLastTransactionReceipt());
+                receipt.setTitle("Purchase Complete");
+                receipt.setHeaderText("Transaction successful");
+                receipt.showAndWait();
 
             } catch (Exception ex) {
                 new Alert(Alert.AlertType.ERROR, ex.getMessage()).showAndWait();
             }
         });
 
-        // sell button action — no more manual UI refresh (observer does it)
+        // sell button — shows preview, then executes, then shows receipt
         sellButton.setOnAction(e -> {
             try {
                 Share selectedShare = portfolioTable.getSelectionModel().getSelectedItem();
                 String quantity = quantityField.getText().trim();
 
+                if (selectedShare == null) {
+                    throw new IllegalArgumentException("Select a share first!");
+                }
+                if (quantity.isBlank()) {
+                    throw new IllegalArgumentException("Quantity cannot be empty!");
+                }
+
+                String preview = controller.previewSale(selectedShare, quantity);
+                Alert confirm = new Alert(Alert.AlertType.CONFIRMATION, preview,
+                        ButtonType.OK, ButtonType.CANCEL);
+                confirm.setTitle("Confirm Sale");
+                confirm.setHeaderText("Review your sale");
+
+                if (confirm.showAndWait().orElse(ButtonType.CANCEL) != ButtonType.OK) {
+                    return;
+                }
+
                 controller.sell(selectedShare, quantity);
                 quantityField.clear();
+
+                Alert receipt = new Alert(Alert.AlertType.INFORMATION,
+                        controller.getLastTransactionReceipt());
+                receipt.setTitle("Sale Complete");
+                receipt.setHeaderText("Transaction successful");
+                receipt.showAndWait();
 
             } catch (Exception ex) {
                 new Alert(Alert.AlertType.ERROR, ex.getMessage()).showAndWait();
@@ -237,20 +310,14 @@ public class WindowView extends Application implements GameObserver {
         });
 
         // --- Selected stock labels ---
-        Label selectedLabel = new Label("Selected: ");
-        Label detailsLabel = new Label("Price | High | Low | Change");
+        selectedLabel = new Label("Selected: ");
+        detailsLabel = new Label("Price | High | Low | Change");
 
         stockTable.getSelectionModel().selectedItemProperty().addListener(
                 (obs, oldStock, newStock) -> {
                     if (newStock != null) {
                         selectedLabel.setText("Selected: " + newStock.getSymbol());
-
-                        detailsLabel.setText(
-                                "Price: " + format(newStock.getSalesPrice())
-                                        + " | High: " + format(newStock.getHighestPrice())
-                                        + " | Low: " + format(newStock.getLowestPrice())
-                                        + " | Change: " + format(newStock.getLatestPriceChange())
-                        );
+                        detailsLabel.setText(controller.getStockDetails(newStock));
                     }
                 }
         );
@@ -299,9 +366,11 @@ public class WindowView extends Application implements GameObserver {
                 new SimpleStringProperty(
                         data.getValue().getCalculator().calculateTotal().toString()));
 
-        transactionTable.getColumns().addAll(
-                weekCol, typeCol, stockCol, qtyColX, totalCol
-        );
+        transactionTable.getColumns().add(weekCol);
+        transactionTable.getColumns().add(typeCol);
+        transactionTable.getColumns().add(stockCol);
+        transactionTable.getColumns().add(qtyColX);
+        transactionTable.getColumns().add(totalCol);
 
         transactionTable.setPrefHeight(120);
         transactionTable.setMaxWidth(600);
@@ -391,14 +460,12 @@ public class WindowView extends Application implements GameObserver {
                             fileField.getText()
                     );
 
-                    // Register this view as an observer of the new game's Exchange
                     controller.addGameObserver(this);
 
                     buyButton.setDisable(false);
                     sellButton.setDisable(false);
                     nextWeekButton.setDisable(false);
 
-                    // Trigger the first UI update manually via the observer method
                     onGameChanged(GameEvent.GAME_STARTED);
 
                 } catch (Exception e) {
@@ -413,9 +480,7 @@ public class WindowView extends Application implements GameObserver {
 
     /**
      * Called by the model (Exchange) whenever the game state changes.
-     * This is the central place where the UI is refreshed — replacing
-     * the manual updatePlayerInfo() / updatePortfolioTable() calls that
-     * used to live in every button handler.
+     * This is the central place where the UI is refreshed.
      *
      * @param event the type of change that occurred
      */
@@ -428,17 +493,21 @@ public class WindowView extends Application implements GameObserver {
                 updatePlayerInfo();
                 updatePortfolioTable();
                 updateTransactionTable();
+                updateMarketMovers();
             }
             case TRANSACTION_COMPLETED -> {
                 updatePlayerInfo();
                 updatePortfolioTable();
                 updateTransactionTable();
                 stockTable.refresh();
+                refreshSelectedStockDetails();
             }
             case WEEK_ADVANCED -> {
                 updatePlayerInfo();
                 updatePortfolioTable();
                 stockTable.refresh();
+                refreshSelectedStockDetails();
+                updateMarketMovers();
             }
         }
     }
@@ -468,8 +537,33 @@ public class WindowView extends Application implements GameObserver {
         );
     }
 
-    private String format(BigDecimal value) {
-        return value.setScale(2, RoundingMode.HALF_UP).toString();
+    /**
+     * Refreshes the "Selected Stock" details label using current model data.
+     * Called by the observer so that prices, high/low, and change stay up-to-date
+     * even when the user doesn't re-click the stock.
+     */
+    private void refreshSelectedStockDetails() {
+        Stock selected = stockTable.getSelectionModel().getSelectedItem();
+        if (selected != null) {
+            detailsLabel.setText(controller.getStockDetails(selected));
+        }
+    }
+
+    /**
+     * Refreshes the Market Movers panel with the current top gainers and losers.
+     */
+    private void updateMarketMovers() {
+        StringBuilder gainers = new StringBuilder("Top Gainers:\n");
+        for (Stock stock : controller.getGainers(3)) {
+            gainers.append(controller.formatMarketMover(stock)).append("\n");
+        }
+        gainersLabel.setText(gainers.toString());
+
+        StringBuilder losers = new StringBuilder("Top Losers:\n");
+        for (Stock stock : controller.getLosers(3)) {
+            losers.append(controller.formatMarketMover(stock)).append("\n");
+        }
+        losersLabel.setText(losers.toString());
     }
 
     public static void main(String[] args) {
