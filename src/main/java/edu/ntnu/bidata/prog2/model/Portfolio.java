@@ -72,17 +72,6 @@ public class Portfolio {
         return shares.contains(share);
     }
 
-
-    // public List<Share> getShares(String symbol) { *return all the shares in the portfolio that have the same stock symbol.
-       // List<Share> result = new ArrayList<>();
-      //  for (Share share : shares) {
-        //    if (share.getStock().getSymbol().equalsIgnoreCase(symbol)) {
-          //      result.add(share);
-            //}
-       // }
-       // return result;
-   // }
-
     /**
      * Calculates the total quantity of shares in the portfolio for a specific stock symbol.
      *
@@ -109,7 +98,7 @@ public class Portfolio {
         return new ArrayList<>(shares);
     }
 
-  /**
+    /**
      * Calculates the net worth of the portfolio by summing the value of all shares.
      *
      * @return the net worth of the portfolio

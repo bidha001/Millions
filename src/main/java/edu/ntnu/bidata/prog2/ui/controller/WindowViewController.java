@@ -81,18 +81,24 @@ public class WindowViewController {
 
     /**
      * Retrieves the current player.
+     * Exposed as part of the controller's public API — useful for tests
+     * and potential future features that need to inspect player state.
      *
      * @return the current Player, or null if no game has been started
      */
+    @SuppressWarnings("unused")
     public Player getPlayer() {
         return player;
     }
 
     /**
      * Retrieves the current exchange.
+     * Exposed as part of the controller's public API — useful for tests
+     * and potential future features that need to inspect exchange state.
      *
      * @return the current Exchange, or null if no game has been started
      */
+    @SuppressWarnings("unused")
     public Exchange getExchange() {
         return exchange;
     }
@@ -416,7 +422,7 @@ public class WindowViewController {
         }
 
         List<Transaction> all = player.getArchive().getTransactions();
-        Transaction last = all.get(all.size() - 1);
+        Transaction last = all.getLast();
         TransactionCalculator calc = last.getCalculator();
 
         return "=== Transaction Receipt ==="
