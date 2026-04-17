@@ -7,6 +7,7 @@ import edu.ntnu.bidata.prog2.observer.GameObserver;
 import edu.ntnu.bidata.prog2.transaction.Transaction;
 import edu.ntnu.bidata.prog2.ui.controller.WindowViewController;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -31,6 +32,7 @@ public class WindowView extends Application implements GameObserver {
     private Button buyButton;
     private Button sellButton;
     private Button nextWeekButton;
+    private Button quitButton;
     private Label nameLabel;
     private Label moneyLabel;
     private Label netWorthLabel;
@@ -74,7 +76,7 @@ public class WindowView extends Application implements GameObserver {
 
         startButton.setOnAction(e -> showStartDialog(stage));
 
-        // MARKET MOVERS BOX (now on the left, below the player info)
+        // MARKET MOVERS BOX (on the left, below the player info)
         VBox moversBox = new VBox(10);
 
         HBox moversTitleRow = new HBox(10);
@@ -96,10 +98,18 @@ public class WindowView extends Application implements GameObserver {
                 losersLabel
         );
 
+        // QUIT BUTTON (on the left, below Market Movers)
+        quitButton = new Button("SELL ALL & QUIT");
+        quitButton.setMaxWidth(Double.MAX_VALUE);
+        quitButton.setDisable(true);
+        quitButton.setStyle("-fx-background-color: #ffcccc;");
+
         left.getChildren().addAll(
                 nameLabel, moneyLabel, netWorthLabel, statusLabel, weekLabel, startButton,
                 new Separator(),
-                moversBox
+                moversBox,
+                new Separator(),
+                quitButton
         );
 
         root.setLeft(left);
@@ -188,7 +198,7 @@ public class WindowView extends Application implements GameObserver {
                 portfolioTable
         );
 
-        // MAIN CONTENT (TOP ROW) — back to 2 columns, movers is on the left
+        // MAIN CONTENT (TOP ROW)
         HBox mainContent = new HBox(100, stocksBox, portfolioBox);
         mainContent.setAlignment(Pos.TOP_CENTER);
 
@@ -303,6 +313,34 @@ public class WindowView extends Application implements GameObserver {
                 receipt.setTitle("Sale Complete");
                 receipt.setHeaderText("Transaction successful");
                 receipt.showAndWait();
+
+            } catch (Exception ex) {
+                new Alert(Alert.AlertType.ERROR, ex.getMessage()).showAndWait();
+            }
+        });
+
+        // quit button — sells all shares, shows summary, then exits
+        quitButton.setOnAction(e -> {
+            Alert confirm = new Alert(Alert.AlertType.CONFIRMATION,
+                    "This will sell ALL your shares at current market prices and quit the game.\n\nAre you sure?",
+                    ButtonType.OK, ButtonType.CANCEL);
+            confirm.setTitle("Sell All & Quit");
+            confirm.setHeaderText("End game");
+
+            if (confirm.showAndWait().orElse(ButtonType.CANCEL) != ButtonType.OK) {
+                return;
+            }
+
+            try {
+                controller.sellAllShares();
+
+                Alert summary = new Alert(Alert.AlertType.INFORMATION,
+                        controller.getFinalSummary());
+                summary.setTitle("Game Over");
+                summary.setHeaderText("Thanks for playing!");
+                summary.showAndWait();
+
+                Platform.exit();
 
             } catch (Exception ex) {
                 new Alert(Alert.AlertType.ERROR, ex.getMessage()).showAndWait();
@@ -465,6 +503,7 @@ public class WindowView extends Application implements GameObserver {
                     buyButton.setDisable(false);
                     sellButton.setDisable(false);
                     nextWeekButton.setDisable(false);
+                    quitButton.setDisable(false);
 
                     onGameChanged(GameEvent.GAME_STARTED);
 
@@ -539,8 +578,6 @@ public class WindowView extends Application implements GameObserver {
 
     /**
      * Refreshes the "Selected Stock" details label using current model data.
-     * Called by the observer so that prices, high/low, and change stay up-to-date
-     * even when the user doesn't re-click the stock.
      */
     private void refreshSelectedStockDetails() {
         Stock selected = stockTable.getSelectionModel().getSelectedItem();

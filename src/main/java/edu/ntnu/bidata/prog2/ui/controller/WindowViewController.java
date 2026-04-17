@@ -217,6 +217,33 @@ public class WindowViewController {
     }
 
     /**
+     * Sells all shares in the player's portfolio at current market prices.
+     * Each sale goes through Exchange.sell(), so each is recorded as a proper
+     * transaction in the archive and fires observer events.
+     *
+     * @throws IllegalArgumentException if no game is active
+     */
+    public void sellAllShares() {
+        if (player == null) {
+            throw new IllegalArgumentException("Start a game first!");
+        }
+
+        // Copy the list — selling modifies the portfolio while we iterate
+        List<Share> shares = new ArrayList<>(player.getPortfolio().getAllShares());
+
+        for (Share share : shares) {
+            Stock stock = share.getStock();
+            Share toSell = new Share(
+                    stock,
+                    share.getQuantity(),
+                    share.getPurchasePrice(),
+                    stock.getSalesPrice()
+            );
+            exchange.sell(player, toSell);
+        }
+    }
+
+    /**
      * Retrieves a map of player information for display in the view.
      *
      * @return a map with keys: name, money, netWorth, week, status
@@ -282,7 +309,6 @@ public class WindowViewController {
 
     /**
      * Calculates the current total value of a share (current price × quantity).
-     * This is business logic prepared for the view as a ready-to-display string.
      *
      * @param share the share
      * @return the current value as a string with 2 decimal places, or "0.00" if the share is null
@@ -319,7 +345,6 @@ public class WindowViewController {
 
     /**
      * Builds a preview text of the costs associated with a potential purchase.
-     * Does not commit the transaction — used to show the user what they're about to pay.
      *
      * @param stock         the stock being considered
      * @param quantityInput the quantity as a string
@@ -405,6 +430,32 @@ public class WindowViewController {
                 + "\nTax:         " + format(calc.calculateTax())
                 + "\n--------------------"
                 + "\nTotal:       " + format(calc.calculateTotal());
+    }
+
+    /**
+     * Builds a final summary of the player's performance.
+     *
+     * @return a multi-line string with name, status, starting money, final money,
+     *         result, and weeks played
+     */
+    public String getFinalSummary() {
+        if (player == null || exchange == null) {
+            return "";
+        }
+
+        BigDecimal starting = player.getStartingMoney();
+        BigDecimal finalMoney = player.getMoney();
+        BigDecimal diff = finalMoney.subtract(starting);
+        String sign = diff.signum() >= 0 ? "+" : "";
+
+        return "=== Final Summary ==="
+                + "\nPlayer:       " + player.getName()
+                + "\nStatus:       " + player.getStatus(exchange.getWeek())
+                + "\nWeeks played: " + exchange.getWeek()
+                + "\n--------------------"
+                + "\nStarted with: " + format(starting)
+                + "\nEnded with:   " + format(finalMoney)
+                + "\nResult:       " + sign + format(diff);
     }
 
     /**
