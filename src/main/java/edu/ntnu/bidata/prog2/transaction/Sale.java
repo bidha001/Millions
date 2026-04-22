@@ -22,52 +22,38 @@ public class Sale extends Transaction {
     }
 
     /**
-     * Commits the sale transaction by adding the total value to the player's money,
-     * removing the share from the player's portfolio, and recording the transaction
-     * in the player's archive.
+     * Commits the sale transaction for the given player.
+     * Validates that the player owns the shares and has enough quantity before performing the sale.
      *
-     * @param player The player executing the sale.
-     * @throws IllegalStateException if the transaction has already been committed,
-     *                               if the player does not own the share,
-     *                               or if the player does not own enough shares.
+     * @param player The player committing the transaction.
+     * @throws IllegalStateException if the transaction is already committed,
+     * if the player doesn't own the share, or if the player doesn't have enough shares to sell.
      */
     @Override
     public void commit(Player player) {
-
         if (committed) {
             throw new IllegalStateException("Transaction already committed!");
         }
 
-        BigDecimal total = calculator.calculateTotal();
-
-        player.setMoney(player.getMoney().add(total));
-
+        // VALIDATE FIRST
         Share existingShare = player.getPortfolio().getShareByStock(share.getStock());
-
         if (existingShare == null) {
             throw new IllegalStateException("You don't own this share!");
         }
-
         BigDecimal remaining = existingShare.getQuantity().subtract(share.getQuantity());
-
         if (remaining.compareTo(BigDecimal.ZERO) < 0) {
             throw new IllegalStateException("You don't own enough shares!");
         }
 
-        // remove the original share
+        // THEN mutate state
+        BigDecimal total = calculator.calculateTotal();
+        player.setMoney(player.getMoney().add(total));
         player.getPortfolio().removeShare(existingShare);
-
-        // add back remaining shares if any left
         if (remaining.compareTo(BigDecimal.ZERO) > 0) {
-            Share updatedShare = new Share(
-                    existingShare.getStock(),
-                    remaining,
-                    existingShare.getPurchasePrice(),
-                    null
-            );
+            Share updatedShare = new Share(existingShare.getStock(), remaining,
+                    existingShare.getPurchasePrice(), null);
             player.getPortfolio().addShare(updatedShare);
         }
-
         committed = true;
         player.getArchive().addTransaction(this);
     }
