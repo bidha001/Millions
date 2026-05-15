@@ -6,7 +6,11 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 
 /**
- * Calculator for purchase transactions.
+ * The PurchaseCalculator class implements the TransactionCalculator interface to calculate
+ * the gross amount, commission, tax, and total cost for a purchase transaction of shares.
+ *
+ * @author Binit Dhungana
+ * @version 2026-02-11
  */
 public class PurchaseCalculator implements TransactionCalculator {
     private final Share share;
@@ -14,16 +18,21 @@ public class PurchaseCalculator implements TransactionCalculator {
     /**
      * Constructs a PurchaseCalculator for the given share.
      *
-     * @param share the share being purchased
+     * @param share the share being purchased (must not be null)
+     * @throws IllegalArgumentException if {@code share} is null
      */
     public PurchaseCalculator(Share share) {
+        if (share == null) {
+            throw new IllegalArgumentException("Share cannot be null");
+        }
         this.share = share;
     }
 
     /**
-     * Calculates the gross amount for the purchase transaction.
+     * Calculates the gross amount for the purchase transaction, using the
+     * purchase price of the stock multiplied by the quantity purchased.
      *
-     * @return the gross amount (purchase price * quantity)
+     * @return the gross amount
      */
     @Override
     public BigDecimal calculateGross() {
@@ -31,9 +40,9 @@ public class PurchaseCalculator implements TransactionCalculator {
     }
 
     /**
-     * Calculates the commission for the purchase transaction.
+     * Calculates the commission for the purchase transaction, fixed at 0.5% of the gross amount.
      *
-     * @return the commission amount (gross * 0.5%)
+     * @return the commission amount, rounded to 2 decimal places
      */
     @Override
     public BigDecimal calculateCommission() {
@@ -43,9 +52,9 @@ public class PurchaseCalculator implements TransactionCalculator {
     }
 
     /**
-     * Calculates the tax for the purchase transaction.
+     * Calculates the tax for the purchase transaction, which is zero for purchases.
      *
-     * @return the tax amount (0 for purchases)
+     * @return the tax amount (always zero)
      */
     @Override
     public BigDecimal calculateTax() {
@@ -53,9 +62,9 @@ public class PurchaseCalculator implements TransactionCalculator {
     }
 
     /**
-     * Calculates the total amount for the purchase transaction.
+     * Calculates the total cost for the purchase transaction, which is the sum of the gross amount and commission.
      *
-     * @return the total amount (gross + commission + tax)
+     * @return the total cost, rounded to 2 decimal places
      */
     @Override
     public BigDecimal calculateTotal() {

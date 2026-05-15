@@ -20,9 +20,12 @@ import java.io.File;
 import java.util.Map;
 
 /**
- * The main window view for the Millions stock market game.
- * Implements GameObserver so it automatically refreshes when the model changes.
- * Contains no business logic — all data preparation is done in the controller.
+ * The main JavaFX application class for the Millions game.
+ * This class is responsible for setting up the entire user interface and
+ * updating it in response to changes in the game state.
+ *
+ * It implements GameObserver to receive updates from the model (Exchange) whenever
+ * the game state changes, allowing it to refresh the UI accordingly.
  */
 public class WindowView extends Application implements GameObserver {
     private WindowViewController controller;
@@ -43,6 +46,12 @@ public class WindowView extends Application implements GameObserver {
     private Label gainersLabel;
     private Label losersLabel;
 
+    /**
+     * The main entry point for the JavaFX application.
+     * Sets up the entire user interface, including all panels, tables, buttons, and labels.
+     *
+     * @param stage the primary stage for this application
+     */
     @Override
     public void start(Stage stage) {
 

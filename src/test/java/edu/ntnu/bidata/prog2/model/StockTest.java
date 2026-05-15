@@ -7,145 +7,137 @@ import java.util.List;
 import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class StockTest {
+class StockTest {
 
-    /**
-     * Tests that the constructor correctly stores the company name, symbol, and initial price.
-     */
+    /** Tests that the constructor stores symbol, company, and initial price correctly. */
     @Test
-    public void ifConstructorStoresValueCorrectly() {
-        Stock stock = new Stock("Apple", "AAPL", new BigDecimal("150"));
+    void constructorStoresValuesCorrectly() {
+        Stock stock = new Stock("AAPL", "Apple", new BigDecimal("150"));
 
-        assertEquals("Apple", stock.getCompany());
         assertEquals("AAPL", stock.getSymbol());
-        assertEquals(new BigDecimal("150"), stock.getSalesPrice());
+        assertEquals("Apple", stock.getCompany());
+        assertEquals(0, stock.getSalesPrice().compareTo(new BigDecimal("150")));
     }
 
-    /**
-     * Tests that the initial trend is zero when a stock is created.
-     */
+    /** Tests that a null symbol is rejected. */
     @Test
-    public void initialTrendIsZero() {
-        Stock stock = new Stock("Apple", "AAPL", new BigDecimal("150"));
+    void constructorRejectsNullSymbol() {
+        assertThrows(IllegalArgumentException.class,
+                () -> new Stock(null, "Apple", new BigDecimal("150")));
+    }
+
+    /** Tests that a blank symbol is rejected. */
+    @Test
+    void constructorRejectsBlankSymbol() {
+        assertThrows(IllegalArgumentException.class,
+                () -> new Stock("  ", "Apple", new BigDecimal("150")));
+    }
+
+    /** Tests that a null company name is rejected. */
+    @Test
+    void constructorRejectsNullCompany() {
+        assertThrows(IllegalArgumentException.class,
+                () -> new Stock("AAPL", null, new BigDecimal("150")));
+    }
+
+    /** Tests that a non-positive sales price is rejected. */
+    @Test
+    void constructorRejectsZeroPrice() {
+        assertThrows(IllegalArgumentException.class,
+                () -> new Stock("AAPL", "Apple", BigDecimal.ZERO));
+    }
+
+    /** Tests that the initial trend is zero when a stock is created. */
+    @Test
+    void initialTrendIsZero() {
+        Stock stock = new Stock("AAPL", "Apple", new BigDecimal("150"));
 
         assertEquals(0.0, stock.getTrend());
     }
 
-    /**
-     * Tests that addNewSalesPrice correctly updates the latest price of the stock.
-     */
+    /** Tests that addNewSalesPrice updates the latest price of the stock. */
     @Test
-    public void addNewSalesPriceUpdatesLatestPrice() {
-        Stock stock = new Stock("Apple", "AAPL", new BigDecimal("150"));
+    void addNewSalesPriceUpdatesLatestPrice() {
+        Stock stock = new Stock("AAPL", "Apple", new BigDecimal("150"));
 
         stock.addNewSalesPrice(new BigDecimal("200"));
 
-        assertEquals(new BigDecimal("200"), stock.getSalesPrice());
+        assertEquals(0, stock.getSalesPrice().compareTo(new BigDecimal("200")));
     }
 
-    /**
-     * Tests that getHighestPrice returns the initial price when no other prices have been added.
-     */
+    /** Tests that getHighestPrice returns the initial price when only one price exists. */
     @Test
-    public void getHighestPriceWithSinglePrice() {
-        Stock stock = new Stock("Apple", "AAPL", new BigDecimal("150"));
+    void getHighestPriceWithSinglePrice() {
+        Stock stock = new Stock("AAPL", "Apple", new BigDecimal("150"));
 
-        assertEquals(new BigDecimal("150"), stock.getHighestPrice());
+        assertEquals(0, stock.getHighestPrice().compareTo(new BigDecimal("150")));
     }
 
-    /**
-     * Tests that getHighestPrice returns the correct maximum when multiple prices have been added.
-     */
+    /** Tests that getHighestPrice returns the correct maximum across multiple prices. */
     @Test
-    public void getHighestPriceReturnsCorrectValue() {
-        Stock stock = new Stock("Apple", "AAPL", new BigDecimal("150"));
-
+    void getHighestPriceReturnsCorrectValue() {
+        Stock stock = new Stock("AAPL", "Apple", new BigDecimal("150"));
         stock.addNewSalesPrice(new BigDecimal("180"));
         stock.addNewSalesPrice(new BigDecimal("120"));
         stock.addNewSalesPrice(new BigDecimal("200"));
 
-        assertEquals(new BigDecimal("200"), stock.getHighestPrice());
+        assertEquals(0, stock.getHighestPrice().compareTo(new BigDecimal("200")));
     }
 
-    /**
-     * Tests that getLowestPrice returns the initial price when no other prices have been added.
-     */
+    /** Tests that getLowestPrice returns the correct minimum across multiple prices. */
     @Test
-    public void getLowestPriceWithSinglePrice() {
-        Stock stock = new Stock("Apple", "AAPL", new BigDecimal("150"));
-
-        assertEquals(new BigDecimal("150"), stock.getLowestPrice());
-    }
-
-    /**
-     * Tests that getLowestPrice returns the correct minimum when multiple prices have been added.
-     */
-    @Test
-    public void getLowestPriceReturnsCorrectValue() {
-        Stock stock = new Stock("Apple", "AAPL", new BigDecimal("150"));
-
+    void getLowestPriceReturnsCorrectValue() {
+        Stock stock = new Stock("AAPL", "Apple", new BigDecimal("150"));
         stock.addNewSalesPrice(new BigDecimal("180"));
         stock.addNewSalesPrice(new BigDecimal("120"));
         stock.addNewSalesPrice(new BigDecimal("200"));
 
-        assertEquals(new BigDecimal("120"), stock.getLowestPrice());
+        assertEquals(0, stock.getLowestPrice().compareTo(new BigDecimal("120")));
     }
 
-    /**
-     * Tests that getLatestPriceChange returns the correct difference between the last two prices.
-     */
+    /** Tests that getLatestPriceChange returns the correct positive difference. */
     @Test
-    public void getLatestPriceChangeReturnsCorrectDifference() {
-        Stock stock = new Stock("Apple", "AAPL", new BigDecimal("150"));
-
+    void getLatestPriceChangeReturnsCorrectDifference() {
+        Stock stock = new Stock("AAPL", "Apple", new BigDecimal("150"));
         stock.addNewSalesPrice(new BigDecimal("180"));
 
-        assertEquals(new BigDecimal("30"), stock.getLatestPriceChange());
+        assertEquals(0, stock.getLatestPriceChange().compareTo(new BigDecimal("30")));
     }
 
-    /**
-     * Tests that getLatestPriceChange returns a negative value when the price has fallen.
-     */
+    /** Tests that getLatestPriceChange returns a negative value when the price fell. */
     @Test
-    public void getLatestPriceChangeReturnsNegativeWhenPriceFell() {
-        Stock stock = new Stock("Apple", "AAPL", new BigDecimal("150"));
-
+    void getLatestPriceChangeReturnsNegativeWhenPriceFell() {
+        Stock stock = new Stock("AAPL", "Apple", new BigDecimal("150"));
         stock.addNewSalesPrice(new BigDecimal("120"));
 
-        assertEquals(new BigDecimal("-30"), stock.getLatestPriceChange());
+        assertEquals(0, stock.getLatestPriceChange().compareTo(new BigDecimal("-30")));
     }
 
-    /**
-     * Tests that getLatestPriceChange returns BigDecimal.ZERO when only one price exists.
-     */
+    /** Tests that getLatestPriceChange returns zero when only one price exists. */
     @Test
-    public void getLatestPriceChangeWithSinglePriceReturnsZero() {
-        Stock stock = new Stock("Apple", "AAPL", new BigDecimal("150"));
+    void getLatestPriceChangeWithSinglePriceReturnsZero() {
+        Stock stock = new Stock("AAPL", "Apple", new BigDecimal("150"));
 
-        assertEquals(BigDecimal.ZERO, stock.getLatestPriceChange());
+        assertEquals(0, stock.getLatestPriceChange().compareTo(BigDecimal.ZERO));
     }
 
-    /**
-     * Tests that getHistoricalPrices returns all recorded prices in the stock.
-     */
+    /** Tests that getHistoricalPrices returns all recorded prices. */
     @Test
-    public void getHistoricalPricesReturnsAllPrices() {
-        Stock stock = new Stock("Apple", "AAPL", new BigDecimal("150"));
-
+    void getHistoricalPricesReturnsAllPrices() {
+        Stock stock = new Stock("AAPL", "Apple", new BigDecimal("150"));
         stock.addNewSalesPrice(new BigDecimal("180"));
         stock.addNewSalesPrice(new BigDecimal("200"));
 
         assertEquals(3, stock.getHistoricalPrices().size());
     }
 
-    /**
-     * Tests that getHistoricalPrices returns a defensive copy so the internal list cannot be modified.
-     */
+    /** Tests that getHistoricalPrices returns a defensive copy. */
     @Test
-    public void getHistoricalPricesReturnsDefensiveCopy() {
-        Stock stock = new Stock("Apple", "AAPL", new BigDecimal("150"));
+    void getHistoricalPricesReturnsDefensiveCopy() {
+        Stock stock = new Stock("AAPL", "Apple", new BigDecimal("150"));
 
         List<BigDecimal> history = stock.getHistoricalPrices();
         history.add(new BigDecimal("999"));
@@ -153,12 +145,10 @@ public class StockTest {
         assertEquals(1, stock.getHistoricalPrices().size());
     }
 
-    /**
-     * Tests that updateTrend always keeps the trend value within the range [-0.05, 0.05].
-     */
+    /** Tests that updateTrend keeps the trend within [-0.05, 0.05] over many iterations. */
     @Test
-    public void updateTrendKeepsValueWithinBounds() {
-        Stock stock = new Stock("Apple", "AAPL", new BigDecimal("150"));
+    void updateTrendKeepsValueWithinBounds() {
+        Stock stock = new Stock("AAPL", "Apple", new BigDecimal("150"));
         Random random = new Random(42);
 
         for (int i = 0; i < 1000; i++) {

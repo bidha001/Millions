@@ -4,17 +4,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Base class for observable subjects in the game model.
- * Manages a list of observers and notifies them of state changes.
+ * Observable class that maintains a list of observers and notifies them of changes.
+ * This is the "subject" in the observer pattern. It allows observers to register
+ * and unregister themselves, and it notifies all registered observers when a change occurs.
  */
 public class Observable {
 
     private final List<GameObserver> observers = new ArrayList<>();
 
     /**
-     * Registers an observer to receive notifications.
+     * Adds an observer to the notification list.
      *
-     * @param observer the observer to add (must not be null)
+     * @param observer the observer to add
      */
     public void addObserver(GameObserver observer) {
         if (observer != null && !observers.contains(observer)) {
@@ -32,9 +33,9 @@ public class Observable {
     }
 
     /**
-     * Notifies all registered observers of a state change.
+     * Notifies all registered observers of a change in the game state.
      *
-     * @param event the type of change that occurred
+     * @param event describes what kind of change occurred
      */
     protected void notifyObservers(GameEvent event) {
         // iterate over a copy to avoid ConcurrentModificationException

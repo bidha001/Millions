@@ -9,80 +9,71 @@ import java.math.BigDecimal;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-public class PurchaseCalculatorTest {
+class SaleCalculatorTest {
 
     /**
-     * Tests that calculateGross returns purchase price multiplied by quantity.
+     * Builds a Share where the player bought at {@code purchasePrice} and the
+     * current market price is {@code currentPrice}.
      */
-    @Test
-    public void calculateGrossReturnsPriceTimesQuantity() {
-        Stock stock = new Stock("Apple", "AAPL", new BigDecimal("100"));
-        Share share = new Share(stock, new BigDecimal("10"), new BigDecimal("100"), null);
-        PurchaseCalculator calc = new PurchaseCalculator(share);
-
-        assertEquals(0, calc.calculateGross().compareTo(new BigDecimal("1000")));
+    private static Share share(BigDecimal quantity, BigDecimal purchasePrice, BigDecimal currentPrice) {
+        Stock stock = new Stock("AAPL", "Apple", purchasePrice);
+        stock.addNewSalesPrice(currentPrice);
+        return new Share(stock, quantity, purchasePrice);
     }
 
-    /**
-     * Tests that calculateCommission returns 0.5% of the gross amount.
-     */
+    /** Tests that calculateGross uses the stock's current price, not the purchase price. */
     @Test
-    public void calculateCommissionIsHalfPercentOfGross() {
-        Stock stock = new Stock("Apple", "AAPL", new BigDecimal("100"));
-        Share share = new Share(stock, new BigDecimal("10"), new BigDecimal("100"), null);
-        PurchaseCalculator calc = new PurchaseCalculator(share);
+    void calculateGrossUsesCurrentPriceTimesQuantity() {
+        Share s = share(new BigDecimal("10"), new BigDecimal("100"), new BigDecimal("150"));
+        SaleCalculator calc = new SaleCalculator(s);
 
-        // 0.5% of 1000 = 5.00
-        assertEquals(0, calc.calculateCommission().compareTo(new BigDecimal("5.00")));
+        // 10 * 150 (current) = 1500 — would be 1000 if it used purchase price
+        assertEquals(0, calc.calculateGross().compareTo(new BigDecimal("1500")));
     }
 
-    /**
-     * Tests that calculateTax is always zero for purchase transactions.
-     */
+    /** Tests that calculateCommission returns 1% of the gross amount. */
     @Test
-    public void calculateTaxIsZeroForPurchase() {
-        Stock stock = new Stock("Apple", "AAPL", new BigDecimal("100"));
-        Share share = new Share(stock, new BigDecimal("10"), new BigDecimal("100"), null);
-        PurchaseCalculator calc = new PurchaseCalculator(share);
+    void calculateCommissionIsOnePercentOfGross() {
+        Share s = share(new BigDecimal("10"), new BigDecimal("100"), new BigDecimal("150"));
+        SaleCalculator calc = new SaleCalculator(s);
+
+        // 1% of 1500 = 15.00
+        assertEquals(0, calc.calculateCommission().compareTo(new BigDecimal("15.00")));
+    }
+
+    /** Tests that calculateTax returns 30% of the profit when the sale is profitable. */
+    @Test
+    void calculateTaxIs30PercentOfProfit() {
+        Share s = share(new BigDecimal("10"), new BigDecimal("100"), new BigDecimal("150"));
+        SaleCalculator calc = new SaleCalculator(s);
+
+        // gross 1500 - commission 15 - purchaseCost 1000 = profit 485
+        // tax = 30% of 485 = 145.50
+        assertEquals(0, calc.calculateTax().compareTo(new BigDecimal("145.50")));
+    }
+
+    /** Tests that calculateTax is zero when the sale is at a loss. */
+    @Test
+    void calculateTaxIsZeroWhenSellingAtLoss() {
+        Share s = share(new BigDecimal("10"), new BigDecimal("100"), new BigDecimal("80"));
+        SaleCalculator calc = new SaleCalculator(s);
 
         assertEquals(0, calc.calculateTax().compareTo(BigDecimal.ZERO));
     }
 
-    /**
-     * Tests that calculateTotal returns gross plus commission plus tax.
-     */
+    /** Tests that calculateTotal returns gross minus commission minus tax. */
     @Test
-    public void calculateTotalSumsGrossCommissionAndTax() {
-        Stock stock = new Stock("Apple", "AAPL", new BigDecimal("100"));
-        Share share = new Share(stock, new BigDecimal("10"), new BigDecimal("100"), null);
-        PurchaseCalculator calc = new PurchaseCalculator(share);
+    void calculateTotalSubtractsCommissionAndTax() {
+        Share s = share(new BigDecimal("10"), new BigDecimal("100"), new BigDecimal("150"));
+        SaleCalculator calc = new SaleCalculator(s);
 
-        // 1000 + 5 + 0 = 1005
-        assertEquals(0, calc.calculateTotal().compareTo(new BigDecimal("1005.00")));
+        // 1500 - 15 - 145.50 = 1339.50
+        assertEquals(0, calc.calculateTotal().compareTo(new BigDecimal("1339.50")));
     }
 
-    /**
-     * Tests that calculations round correctly with decimal prices.
-     */
+    /** Tests that the constructor rejects null. */
     @Test
-    public void calculationsWorkWithDecimalPrices() {
-        Stock stock = new Stock("Apple", "AAPL", new BigDecimal("99.99"));
-        Share share = new Share(stock, new BigDecimal("3"), new BigDecimal("99.99"), null);
-        PurchaseCalculator calc = new PurchaseCalculator(share);
-
-        // gross: 3 * 99.99 = 299.97
-        assertEquals(0, calc.calculateGross().compareTo(new BigDecimal("299.97")));
-        // commission: 0.5% of 299.97 = 1.49985 → 1.50
-        assertEquals(0, calc.calculateCommission().compareTo(new BigDecimal("1.50")));
-    }
-
-    /**
-     * Tests that the calculator throws when the share is null.
-     */
-    @Test
-    public void calculatorWithNullShareThrowsOnUse() {
-        PurchaseCalculator calc = new PurchaseCalculator(null);
-
-        assertThrows(NullPointerException.class, calc::calculateGross);
+    void constructorRejectsNull() {
+        assertThrows(IllegalArgumentException.class, () -> new SaleCalculator(null));
     }
 }

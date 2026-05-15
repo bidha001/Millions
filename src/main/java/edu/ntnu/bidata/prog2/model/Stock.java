@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 
 /**
  * The Stock class represents a stock in the stock market.
@@ -14,26 +15,39 @@ import java.util.List;
  * @version 2026-02-11
  */
 public class Stock {
-    private final String company;
     private final String symbol;
-    //declaration of Stock has a list of price
+    private final String company;
     private final List<BigDecimal> prices;
     private double trend = 0.0;
 
     /**
-     * Constructs a new Stock object with the specified company name, stock symbol, and initial price.
+     * Constructs a new Stock object with the specified stock symbol, company name, and initial sales price.
      *
-     * @param company      The name of the company associated with this stock.
-     * @param symbol       The stock symbol, which is a unique identifier for the stock.
-     * @param initialPrice The initial sales price of the stock.
+     * @param symbol     The stock symbol, which is a unique identifier for the stock.
+     * @param company    The name of the company associated with the stock.
+     * @param salesPrice The initial sales price of the stock.
+     * @throws IllegalArgumentException if any of the parameters are null, blank, or if the sales price is not positive.
      */
-    public Stock(String company, String symbol, BigDecimal initialPrice) {
-        this.company = company;
+    public Stock(String symbol, String company, BigDecimal salesPrice) {
+        if (symbol == null || symbol.isBlank()) {
+            throw new IllegalArgumentException("Symbol cannot be null or blank");
+        }
+
+        if (company == null || company.isBlank()) {
+            throw new IllegalArgumentException("Company cannot be null or blank");
+        }
+
+        if (salesPrice == null) {
+            throw new IllegalArgumentException("Sale price cannot be null");
+        }
+
+        if (salesPrice.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Sales price must be positive");
+        }
         this.symbol = symbol;
-        // create an empty list to store prices
+        this.company = company;
         this.prices = new ArrayList<>();
-        // Add the initial price to the list of prices
-        this.prices.add(initialPrice);
+        this.prices.add(salesPrice);
     }
 
     /**
@@ -123,11 +137,15 @@ public class Stock {
      *
      * @param random A Random object used to generate random values for updating the trend.
      */
-    public void updateTrend(java.util.Random random) {
+    public void updateTrend(Random random) {
         trend += (random.nextDouble() - 0.5) * 0.02;
 
-        if (trend > 0.05) trend = 0.05;
-        if (trend < -0.05) trend = -0.05;
+        if (trend > 0.05) {
+            trend = 0.05;
+        }
+        if (trend < -0.05) {
+            trend = -0.05;
+        }
     }
 
     /**

@@ -12,10 +12,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * A CSV-based implementation of StockDataSource.
- * Reads and writes stock data in CSV format with the structure:
- *   symbol,company,price
- * Lines starting with '#' and empty lines are treated as comments and ignored.
+ * A CSV implementation of the StockDataSource interface.
+ * This class can read stock data from a CSV file and write stock data to a CSV file.
+ * The expected CSV format is:
+ * <pre>
+ * # Ticker,Name,Price
+ * AAPL,Apple Inc.,150.00
+ * MSFT,Microsoft Corporation,250.00
+ * </pre>
  */
 public class CsvStockDataSource implements StockDataSource {
 
@@ -25,9 +29,9 @@ public class CsvStockDataSource implements StockDataSource {
     /**
      * Reads stock data from a CSV file.
      *
-     * @param filePath the path to the CSV file
+     * @param filePath the path to the CSV file to read from
      * @return a map of stock symbols to Stock objects
-     * @throws IOException if the file cannot be read or the format is invalid
+     * @throws IOException if the file cannot be read or if the format is invalid
      */
     @Override
     public Map<String, Stock> read(String filePath) throws IOException {
@@ -65,7 +69,7 @@ public class CsvStockDataSource implements StockDataSource {
                             + ": " + parts[2]);
                 }
 
-                Stock stock = new Stock(company, symbol, price);
+                Stock stock = new Stock(symbol, company, price);
                 stocks.put(symbol, stock);
             }
         }
@@ -74,10 +78,10 @@ public class CsvStockDataSource implements StockDataSource {
     }
 
     /**
-     * Writes stock data to a CSV file using the latest sales price of each stock.
+     * Writes stock data to a CSV file.
      *
-     * @param stocks   the map of stocks to write
-     * @param filePath the path to write the file to
+     * @param stocks   a map of stock symbols to Stock objects
+     * @param filePath the path to the CSV file to write to
      * @throws IOException if the file cannot be written
      */
     @Override

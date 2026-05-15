@@ -15,28 +15,25 @@ import edu.ntnu.bidata.prog2.transaction.Transaction;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
- * Controller for the main window view.
- * Handles user actions, coordinates between the view and the model,
- * and prepares display-ready data for the view (so the view contains
- * no business logic or formatting).
+ * The WindowViewController serves as the intermediary between the UI and the game model.
+ * It manages the Player and Exchange instances, processes user inputs, and provides
+ * data in a format suitable for display. It also handles error checking and throws
+ * IllegalArgumentException with user-friendly messages when inputs are invalid.
  */
 public class WindowViewController {
     private Player player;
     private Exchange exchange;
 
     /**
-     * Starts a new game with the given name, starting money, and stock data file.
+     * Initializes a new game with the given player name, starting money, and stock data file.
      *
-     * @param name       the player's name (letters and spaces only)
-     * @param moneyInput the starting money as a string
-     * @param filePath   the path to the stock data file
-     * @throws IllegalArgumentException if any input is invalid or the file cannot be read
+     * @param name       the player's name (must contain only letters and spaces)
+     * @param moneyInput the starting money as a string (must be a positive number)
+     * @param filePath   the path to the stock data file (must not be empty)
+     * @throws IllegalArgumentException if any input is invalid
      */
     public void startNewGame(String name, String moneyInput, String filePath) {
 
@@ -76,7 +73,7 @@ public class WindowViewController {
         }
 
         this.player = new Player(name, money);
-        this.exchange = new Exchange("Market", stocks);
+        this.exchange = new Exchange("Market", new ArrayList<>(stocks.values()));
     }
 
     /**
@@ -103,18 +100,16 @@ public class WindowViewController {
         return exchange;
     }
 
-    /**
-     * Advances the game to the next week.
-     */
+
     public void nextWeek() {
         exchange.advance();
     }
 
     /**
-     * Searches for stocks whose symbol or company name contains the given query.
+     * Searches for stocks matching the given query string.
      *
-     * @param query the search string
-     * @return a list of matching stocks, or an empty list if no game is active
+     * @param query the search query (e.g., part of a stock symbol)
+     * @return a list of matching stocks, or an empty list if no exchange is active
      */
     public List<Stock> searchStocks(String query) {
 
@@ -137,11 +132,9 @@ public class WindowViewController {
         if (player == null) {
             throw new IllegalArgumentException("Start a game first!");
         }
-
         if (stock == null) {
             throw new IllegalArgumentException("Select a stock first!");
         }
-
         if (quantityInput == null || quantityInput.isBlank()) {
             throw new IllegalArgumentException("Quantity cannot be empty!");
         }
@@ -152,39 +145,29 @@ public class WindowViewController {
         } catch (NumberFormatException e) {
             throw new IllegalArgumentException("Invalid quantity: '" + quantityInput + "'");
         }
-
         if (quantity.compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("Quantity must be greater than 0!");
         }
 
-        Share share = new Share(
-                stock,
-                quantity,
-                stock.getSalesPrice(),
-                null
-        );
-
-        exchange.buy(player, share);
+        exchange.buy(stock.getSymbol(), quantity, player);
     }
 
     /**
-     * Sells a given quantity of the selected share for the current player.
+     * Sells a given quantity of the selected share from the player's portfolio.
      *
-     * @param selectedShare the share to sell
+     * @param selectedShare the share to sell (must belong to the player)
      * @param quantityInput the quantity to sell as a string
-     * @throws IllegalArgumentException if the input is invalid, no game is active,
-     *                                  or the player doesn't own enough shares
+     * @throws IllegalArgumentException if the input is invalid, the share is not owned,
+     *                                  or no game is active
      */
     public void sell(Share selectedShare, String quantityInput) {
 
         if (player == null) {
             throw new IllegalArgumentException("Start a game first!");
         }
-
         if (selectedShare == null) {
             throw new IllegalArgumentException("Select a share first!");
         }
-
         if (quantityInput == null || quantityInput.isBlank()) {
             throw new IllegalArgumentException("Quantity cannot be empty!");
         }
@@ -195,37 +178,23 @@ public class WindowViewController {
         } catch (NumberFormatException e) {
             throw new IllegalArgumentException("Invalid quantity: '" + quantityInput + "'");
         }
-
         if (quantity.compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("Quantity must be greater than 0!");
         }
 
         Stock stock = selectedShare.getStock();
-
-        Share existingShare = player.getPortfolio().getShareByStock(stock);
-
-        if (existingShare == null) {
-            throw new IllegalArgumentException("You don't own this share!");
+        BigDecimal owned = player.getPortfolio().getTotalQuantity(stock.getSymbol());
+        if (quantity.compareTo(owned) > 0) {
+            throw new IllegalArgumentException(
+                    "You don't own that many shares! (own " + owned + ")");
         }
 
-        if (quantity.compareTo(existingShare.getQuantity()) > 0) {
-            throw new IllegalArgumentException("You don't own that many shares!");
-        }
-
-        Share shareToSell = new Share(
-                stock,
-                quantity,
-                existingShare.getPurchasePrice(),
-                stock.getSalesPrice()
-        );
-
-        exchange.sell(player, shareToSell);
+        exchange.sell(stock.getSymbol(), quantity, player);
     }
 
     /**
-     * Sells all shares in the player's portfolio at current market prices.
-     * Each sale goes through Exchange.sell(), so each is recorded as a proper
-     * transaction in the archive and fires observer events.
+     * Sells all shares in the player's portfolio, grouped by stock symbol.
+     * Each stock's total quantity is sold in a single transaction.
      *
      * @throws IllegalArgumentException if no game is active
      */
@@ -234,25 +203,26 @@ public class WindowViewController {
             throw new IllegalArgumentException("Start a game first!");
         }
 
-        // Copy the list — selling modifies the portfolio while we iterate
-        List<Share> shares = new ArrayList<>(player.getPortfolio().getAllShares());
+        // Group total quantity per stock symbol — separate lots become a single Sale.
+        Map<String, Stock> stocksBySymbol = new LinkedHashMap<>();
+        Map<String, BigDecimal> totalsBySymbol = new LinkedHashMap<>();
 
-        for (Share share : shares) {
-            Stock stock = share.getStock();
-            Share toSell = new Share(
-                    stock,
-                    share.getQuantity(),
-                    share.getPurchasePrice(),
-                    stock.getSalesPrice()
-            );
-            exchange.sell(player, toSell);
+        for (Share share : player.getPortfolio().getShares()) {
+            String symbol = share.getStock().getSymbol();
+            stocksBySymbol.putIfAbsent(symbol, share.getStock());
+            totalsBySymbol.merge(symbol, share.getQuantity(), BigDecimal::add);
+        }
+
+        for (String symbol : stocksBySymbol.keySet()) {
+            exchange.sell(symbol, totalsBySymbol.get(symbol), player);
         }
     }
 
     /**
-     * Retrieves a map of player information for display in the view.
+     * Retrieves key information about the player for display in the UI.
      *
-     * @return a map with keys: name, money, netWorth, week, status
+     * @return a map of player attributes (name, money, net worth, week, status),
+     *         or an empty map if no game is active
      */
     public Map<String, String> getPlayerInfo() {
 
@@ -265,18 +235,18 @@ public class WindowViewController {
         int week = exchange.getWeek();
 
         info.put("name", player.getName());
-        info.put("money", player.getMoney().toString());
-        info.put("netWorth", player.getNetWorth().toString());
+        info.put("money", format(player.getMoney()));
+        info.put("netWorth", format(player.getNetWorth()));
         info.put("week", String.valueOf(week));
-        info.put("status", player.getStatus(week));
+        info.put("status", player.getStatus());
 
         return info;
     }
 
     /**
-     * Retrieves all shares in the player's portfolio.
+     * Retrieves the player's current portfolio shares.
      *
-     * @return a list of shares, or an empty list if no game is active
+     * @return a list of shares in the player's portfolio, or an empty list if no game is active
      */
     public List<Share> getPortfolioData() {
 
@@ -284,11 +254,11 @@ public class WindowViewController {
             return new ArrayList<>();
         }
 
-        return player.getPortfolio().getAllShares();
+        return player.getPortfolio().getShares();
     }
 
     /**
-     * Retrieves all transactions from the player's archive.
+     * Retrieves the player's transaction history from their archive.
      *
      * @return a list of transactions, or an empty list if no game is active
      */
@@ -302,10 +272,9 @@ public class WindowViewController {
     }
 
     /**
-     * Registers an observer to be notified of changes in the game model.
-     * Call this after startNewGame() — before that, no exchange exists yet.
+     * Adds a GameObserver to the exchange to receive updates on game events.
      *
-     * @param observer the observer to register
+     * @param observer the GameObserver to add
      */
     public void addGameObserver(GameObserver observer) {
         if (exchange != null) {
@@ -314,10 +283,10 @@ public class WindowViewController {
     }
 
     /**
-     * Calculates the current total value of a share (current price × quantity).
+     * Calculates the current market value of a share based on its stock's sales price.
      *
-     * @param share the share
-     * @return the current value as a string with 2 decimal places, or "0.00" if the share is null
+     * @param share the share to evaluate
+     * @return the current value of the share as a string, or "0.00" if the share is null
      */
     public String getShareValue(Share share) {
         if (share == null) {
@@ -333,10 +302,10 @@ public class WindowViewController {
     }
 
     /**
-     * Builds a display-ready summary of a stock's key statistics.
+     * Builds a display string with key details about a stock for the stock list.
      *
-     * @param stock the stock
-     * @return a formatted string with price, high, low, and change, or an empty string if null
+     * @param stock the stock to format
+     * @return a string with price, high, low, and change, or an empty string if stock is null
      */
     public String getStockDetails(Stock stock) {
         if (stock == null) {
@@ -350,9 +319,9 @@ public class WindowViewController {
     }
 
     /**
-     * Builds a preview text of the costs associated with a potential purchase.
+     * Builds a preview text of the cost of a potential purchase.
      *
-     * @param stock         the stock being considered
+     * @param stock         the stock to buy
      * @param quantityInput the quantity as a string
      * @return a multi-line string showing gross, commission, tax, and total cost
      * @throws IllegalArgumentException if the quantity is invalid
@@ -365,7 +334,7 @@ public class WindowViewController {
             throw new IllegalArgumentException("Invalid quantity: '" + quantityInput + "'");
         }
 
-        Share share = new Share(stock, quantity, stock.getSalesPrice(), null);
+        Share share = new Share(stock, quantity, stock.getSalesPrice());
         TransactionCalculator calc = new PurchaseCalculator(share);
 
         return "Stock:       " + stock.getSymbol()
@@ -382,9 +351,9 @@ public class WindowViewController {
     /**
      * Builds a preview text of the proceeds from a potential sale.
      *
-     * @param share         the share being considered for sale
+     * @param share         the share to sell
      * @param quantityInput the quantity as a string
-     * @return a multi-line string showing gross, commission, tax, and amount received
+     * @return a multi-line string showing gross, commission, tax, and total proceeds
      * @throws IllegalArgumentException if the quantity is invalid
      */
     public String previewSale(Share share, String quantityInput) {
@@ -396,8 +365,7 @@ public class WindowViewController {
         }
 
         Stock stock = share.getStock();
-        Share previewShare = new Share(
-                stock, quantity, share.getPurchasePrice(), stock.getSalesPrice());
+        Share previewShare = new Share(stock, quantity, share.getPurchasePrice());
         TransactionCalculator calc = new SaleCalculator(previewShare);
 
         return "Stock:       " + stock.getSymbol()
@@ -412,9 +380,10 @@ public class WindowViewController {
     }
 
     /**
-     * Builds a receipt text of the most recent transaction in the player's archive.
+     * Builds a receipt string for the last transaction in the player's archive.
      *
-     * @return a formatted receipt string, or empty if no transactions exist
+     * @return a multi-line string with transaction details and calculations,
+     *         or an empty string if no transactions exist
      */
     public String getLastTransactionReceipt() {
         if (player == null || player.getArchive().getTransactions().isEmpty()) {
@@ -439,10 +408,10 @@ public class WindowViewController {
     }
 
     /**
-     * Builds a final summary of the player's performance.
+     * Builds a final summary string with the player's performance at the end of the game.
      *
-     * @return a multi-line string with name, status, starting money, final money,
-     *         result, and weeks played
+     * @return a multi-line string summarizing the player's name, status, weeks played,
+     *         starting money, final money, and net result, or an empty string if no game is active
      */
     public String getFinalSummary() {
         if (player == null || exchange == null) {
@@ -456,7 +425,7 @@ public class WindowViewController {
 
         return "=== Final Summary ==="
                 + "\nPlayer:       " + player.getName()
-                + "\nStatus:       " + player.getStatus(exchange.getWeek())
+                + "\nStatus:       " + player.getStatus()
                 + "\nWeeks played: " + exchange.getWeek()
                 + "\n--------------------"
                 + "\nStarted with: " + format(starting)
@@ -491,10 +460,10 @@ public class WindowViewController {
     }
 
     /**
-     * Builds a display-ready string for a stock's market movement.
+     * Formats a stock's symbol and price change for display in the market movers list.
      *
-     * @param stock the stock
-     * @return a formatted line with symbol and change (e.g., "AAPL  +5.23")
+     * @param stock the stock to format
+     * @return a string with the stock symbol and price change, or an empty string if stock is null
      */
     public String formatMarketMover(Stock stock) {
         if (stock == null) {
@@ -506,10 +475,10 @@ public class WindowViewController {
     }
 
     /**
-     * Formats a BigDecimal value to 2 decimal places for display.
+     * Helper method to format BigDecimal values to a string with 2 decimal places.
      *
-     * @param value the value to format
-     * @return the value as a string with 2 decimal places
+     * @param value the BigDecimal value to format
+     * @return a string representation of the value with 2 decimal places
      */
     private String format(BigDecimal value) {
         return value.setScale(2, RoundingMode.HALF_UP).toString();

@@ -3,134 +3,118 @@ package edu.ntnu.bidata.prog2.model;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
- * Represents a portfolio of shares.
+ * The Portfolio class represents a collection of shares owned by a player in the stock market game.
+ * It provides methods to manage the shares, calculate the net worth of the portfolio, and retrieve
+ * information about the shares held.
+ *
+ * @author Binit Dhungana
+ * @version 2026-02-11
  */
 public class Portfolio {
+
     private final List<Share> shares;
 
     /**
-     * Constructs an empty portfolio.
+     * Constructs an empty Portfolio.
      */
     public Portfolio() {
         this.shares = new ArrayList<>();
     }
 
     /**
-     * Adds a share to the portfolio. If a share with the same stock symbol already exists,
-     * it merges the quantities and keeps the original purchase price.
+     * Adds a share to the portfolio.
      *
      * @param share the share to add
+     * @return {@code true} if the share was added, {@code false} if it was already present
+     * @throws IllegalArgumentException if the share is null
      */
-    public void addShare(Share share) {
-
-        for (Share existing : shares) {
-
-            if (existing.getStock().getSymbol()
-                    .equals(share.getStock().getSymbol())) {
-
-                // merge quantities
-                BigDecimal newQuantity =
-                        existing.getQuantity().add(share.getQuantity());
-
-                // remove old share
-                shares.remove(existing);
-
-                // add merged share
-                shares.add(new Share(
-                        existing.getStock(),
-                        newQuantity,
-                        existing.getPurchasePrice(), // keep original price
-                        null
-                ));
-
-                return;
-            }
+    public boolean addShare(Share share) {
+        if (share == null) {
+            throw new IllegalArgumentException("Share cannot be null");
         }
-
-        // if no existing → add normally
-        shares.add(share);
+        return shares.add(share);
     }
 
     /**
      * Removes a share from the portfolio.
      *
      * @param share the share to remove
+     * @return {@code true} if the share was removed, {@code false} if it was not found
      */
-    public void removeShare(Share share) {
-        shares.remove(share);
+    public boolean removeShare(Share share) {
+        return shares.remove(share);
     }
 
     /**
      * Checks if the portfolio contains a specific share.
      *
      * @param share the share to check for
-     * @return true if the share is in the portfolio, false otherwise
+     * @return {@code true} if the share is in the portfolio, {@code false} otherwise
      */
-    public boolean containsShare(Share share) {
+    public boolean contains(Share share) {
         return shares.contains(share);
     }
 
     /**
-     * Calculates the total quantity of shares in the portfolio for a specific stock symbol.
+     * Returns a defensive copy of all shares in the portfolio.
      *
-     * @param symbol the stock symbol to calculate the total quantity for
-     * @return the total quantity of shares with the specified stock symbol
+     * @return a list of all shares
      */
-    public BigDecimal getTotalQuantity(String symbol) {
-        BigDecimal totalQuantity = BigDecimal.ZERO;
-
-        for (Share share : shares) {
-            if (share.getStock().getSymbol().equalsIgnoreCase(symbol)) {
-                totalQuantity = totalQuantity.add(share.getQuantity());
-            }
-        }
-        return totalQuantity;
-    }
-
-    /**
-     * Retrieves a list of all shares in the portfolio.
-     *
-     * @return a list of all shares in the portfolio
-     */
-    public List<Share> getAllShares() {
+    public List<Share> getShares() {
         return new ArrayList<>(shares);
     }
 
     /**
-     * Calculates the net worth of the portfolio by summing the value of all shares.
+     * Returns a list of shares in the portfolio that match the given stock symbol.
      *
-     * @return the net worth of the portfolio
+     * @param symbol the stock symbol to filter by
+     * @return a list of shares with the specified stock symbol, or an empty list if none are found
+     * @throws IllegalArgumentException if the symbol is null
      */
-    public BigDecimal getNetWorth() {
-
-        BigDecimal total = BigDecimal.ZERO;
-
-        for (Share share : shares) {
-
-            BigDecimal value = share.getStock()
-                    .getSalesPrice()
-                    .multiply(share.getQuantity());
-
-            total = total.add(value);
+    public List<Share> getShares(String symbol) {
+        Objects.requireNonNull(symbol, "symbol");
+        List<Share> result = new ArrayList<>();
+        for (Share s : shares) {
+            if (s.getStock().getSymbol().equals(symbol)) {
+                result.add(s);
+            }
         }
+        return result;
+    }
 
+    /**
+     * Calculates the total quantity of shares in the portfolio for a given stock symbol.
+     *
+     * @param symbol the stock symbol to calculate the total quantity for
+     * @return the total quantity of shares for the specified stock symbol, or zero if none are found
+     * @throws IllegalArgumentException if the symbol is null
+     */
+    public BigDecimal getTotalQuantity(String symbol) {
+        Objects.requireNonNull(symbol, "symbol");
+        BigDecimal total = BigDecimal.ZERO;
+        for (Share s : shares) {
+            if (s.getStock().getSymbol().equals(symbol)) {
+                total = total.add(s.getQuantity());
+            }
+        }
         return total;
     }
 
     /**
-     * Retrieves a share from the portfolio based on the stock.
+     * Calculates the net worth of the portfolio by summing the current value of all shares.
      *
-     * @param stock the stock to search for
-     * @return the share associated with the specified stock, or null if not found
+     * @return the total net worth of the portfolio
      */
-    public Share getShareByStock(Stock stock) {
+    public BigDecimal getNetWorth() {
+        BigDecimal total = BigDecimal.ZERO;
         for (Share share : shares) {
-            if (share.getStock().getSymbol().equals(stock.getSymbol())) {
-                return share;
-            }
+            total = total.add(
+                    share.getStock().getSalesPrice().multiply(share.getQuantity())
+            );
         }
-        return null;
+        return total;
     }
 }

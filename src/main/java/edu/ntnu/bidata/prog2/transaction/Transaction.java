@@ -5,23 +5,28 @@ import edu.ntnu.bidata.prog2.model.Player;
 import edu.ntnu.bidata.prog2.model.Share;
 
 /**
- * Abstract class representing a transaction (buy or sell) in the stock market simulation.
- * It contains common properties and methods for both buy and sell transactions.
+ * Abstract base class for transactions. Encapsulates common properties and
+ * behaviors of transactions, such as the share involved, the week of the
+ * transaction, the calculator for totals, and whether the transaction has been
+ * committed. Subclasses must implement the {@link #commit(Player)} method to
+ * apply the transaction's effects to a player.
  */
 public abstract class Transaction {
+
     protected final Share share;
     protected int week;
-    protected final TransactionCalculator calculator;
+    protected TransactionCalculator calculator;
     protected boolean committed;
 
     /**
-     * Constructs a new Transaction with the specified share, week, and calculator.
+     * Constructs a new Transaction with the given share, week, and calculator.
      *
-     * @param share      The share involved in the transaction.
-     * @param week       The week number when the transaction is made.
-     * @param calculator The calculator used to compute the financial details of the transaction.
+     * @param share      the share involved in the transaction
+     * @param week       the week number when the transaction is made
+     * @param calculator the calculator for predicting totals before commit
+     * @throws IllegalArgumentException if any argument is invalid
      */
-    public Transaction(Share share, int week, TransactionCalculator calculator) {
+    protected Transaction(Share share, int week, TransactionCalculator calculator) {
         this.share = share;
         this.week = week;
         this.calculator = calculator;
@@ -29,46 +34,67 @@ public abstract class Transaction {
     }
 
     /**
-     * Retrieves the share involved in the transaction.
+     * Returns the share involved in this transaction.
      *
-     * @return The share involved in the transaction.
+     * @return the share involved in this transaction
      */
     public Share getShare() {
         return share;
     }
 
     /**
-     * Retrieves the week number when the transaction is made.
+     * Returns the week number when this transaction was made.
      *
-     * @return The week number of the transaction.
+     * @return the week number of this transaction
      */
     public int getWeek() {
         return week;
     }
 
     /**
-     * Checks if the transaction has been committed.
+     * Returns whether this transaction has been committed.
      *
-     * @return true if the transaction is committed, false otherwise.
+     * @return {@code true} if this transaction has been committed, {@code false} otherwise
      */
     public boolean isCommitted() {
         return committed;
     }
 
     /**
-     * Retrieves the calculator used for this transaction.
+     * Returns the calculator for predicting totals before commit. Note that the
+     * predicted totals may differ from the actual totals after commit, especially
+     * for sales due to FIFO lot accounting.
      *
-     * @return The TransactionCalculator associated with this transaction.
+     * @return the calculator for this transaction
      */
     public TransactionCalculator getCalculator() {
         return calculator;
     }
 
     /**
-     * Commits the transaction, applying its effects to the player's portfolio and cash balance.
-     * The transaction is also recorded in the player's transaction archive.
+     * Sets the calculator for this transaction. This method is protected to allow
+     * subclasses to update the calculator if needed, but prevents external code
+     * from changing it arbitrarily.
      *
-     * @param player The player for whom the transaction is being committed.
+     * @param calculator the new calculator to set (not null)
+     * @throws IllegalArgumentException if {@code calculator} is null
+     */
+    protected void setCalculator(TransactionCalculator calculator) {
+        if (calculator == null) {
+            throw new IllegalArgumentException("Calculator cannot be null");
+        }
+        this.calculator = calculator;
+    }
+
+    /**
+     * Commits this transaction by applying its effects to the given player. This
+     * method must be implemented by subclasses to define the specific behavior of
+     * committing a purchase or sale.
+     *
+     * @param player the player committing the transaction
+     * @throws IllegalStateException    if this transaction has already been committed
+     *                                  or if the player doesn't have enough resources (money or shares)
+     * @throws IllegalArgumentException if {@code player} is null
      */
     public abstract void commit(Player player);
 }

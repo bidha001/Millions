@@ -6,201 +6,176 @@ import java.math.BigDecimal;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class PortfolioTest {
+class PortfolioTest {
 
-    /**
-     * Tests that a new portfolio is empty when created.
-     */
+    /** Tests that a new portfolio is empty. */
     @Test
-    public void newPortfolioIsEmpty() {
+    void newPortfolioIsEmpty() {
         Portfolio portfolio = new Portfolio();
 
-        assertEquals(0, portfolio.getAllShares().size());
+        assertEquals(0, portfolio.getShares().size());
     }
 
-    /**
-     * Tests that addShare correctly adds a new share to the portfolio.
-     */
+    /** Tests that addShare adds a share to the portfolio. */
     @Test
-    public void addShareAddsShareToPortfolio() {
+    void addShareAddsShareToPortfolio() {
         Portfolio portfolio = new Portfolio();
-        Stock stock = new Stock("Apple", "AAPL", new BigDecimal("100"));
-        Share share = new Share(stock, new BigDecimal("10"), new BigDecimal("100"), null);
+        Stock stock = new Stock("AAPL", "Apple", new BigDecimal("100"));
+        Share share = new Share(stock, new BigDecimal("10"), new BigDecimal("100"));
+
+        assertTrue(portfolio.addShare(share));
+        assertEquals(1, portfolio.getShares().size());
+    }
+
+    /** Tests that addShare rejects null. */
+    @Test
+    void addShareRejectsNull() {
+        Portfolio portfolio = new Portfolio();
+
+        assertThrows(IllegalArgumentException.class, () -> portfolio.addShare(null));
+    }
+
+    /** Tests that adding two buys of the same stock keeps them as separate lots. */
+    @Test
+    void addShareKeepsSameStockAsSeparateLots() {
+        Portfolio portfolio = new Portfolio();
+        Stock stock = new Stock("AAPL", "Apple", new BigDecimal("100"));
+
+        portfolio.addShare(new Share(stock, new BigDecimal("10"), new BigDecimal("100")));
+        portfolio.addShare(new Share(stock, new BigDecimal("5"), new BigDecimal("120")));
+
+        // Two separate lots, NOT merged — preserves per-lot purchase price for tax basis.
+        assertEquals(2, portfolio.getShares().size());
+        assertEquals(0, portfolio.getTotalQuantity("AAPL").compareTo(new BigDecimal("15")));
+    }
+
+    /** Tests that adding shares for different stocks keeps them as separate entries. */
+    @Test
+    void addShareKeepsDifferentStocksSeparate() {
+        Portfolio portfolio = new Portfolio();
+        Stock apple = new Stock("AAPL", "Apple", new BigDecimal("100"));
+        Stock tesla = new Stock("TSLA", "Tesla", new BigDecimal("200"));
+
+        portfolio.addShare(new Share(apple, new BigDecimal("10"), new BigDecimal("100")));
+        portfolio.addShare(new Share(tesla, new BigDecimal("5"), new BigDecimal("200")));
+
+        assertEquals(2, portfolio.getShares().size());
+    }
+
+    /** Tests that removeShare removes a share and returns true. */
+    @Test
+    void removeShareRemovesShareFromPortfolio() {
+        Portfolio portfolio = new Portfolio();
+        Stock stock = new Stock("AAPL", "Apple", new BigDecimal("100"));
+        Share share = new Share(stock, new BigDecimal("10"), new BigDecimal("100"));
+
+        portfolio.addShare(share);
+        assertTrue(portfolio.removeShare(share));
+        assertEquals(0, portfolio.getShares().size());
+    }
+
+    /** Tests that removeShare returns false when the share isn't present. */
+    @Test
+    void removeShareReturnsFalseWhenNotPresent() {
+        Portfolio portfolio = new Portfolio();
+        Stock stock = new Stock("AAPL", "Apple", new BigDecimal("100"));
+        Share share = new Share(stock, new BigDecimal("10"), new BigDecimal("100"));
+
+        assertFalse(portfolio.removeShare(share));
+    }
+
+    /** Tests that contains returns true when the share exists. */
+    @Test
+    void containsReturnsTrueWhenShareExists() {
+        Portfolio portfolio = new Portfolio();
+        Stock stock = new Stock("AAPL", "Apple", new BigDecimal("100"));
+        Share share = new Share(stock, new BigDecimal("10"), new BigDecimal("100"));
 
         portfolio.addShare(share);
 
-        assertEquals(1, portfolio.getAllShares().size());
+        assertTrue(portfolio.contains(share));
     }
 
-    /**
-     * Tests that adding a share with an existing stock symbol merges the quantities.
-     */
+    /** Tests that contains returns false when the share does not exist. */
     @Test
-    public void addShareMergesQuantityWhenSameStockExists() {
+    void containsReturnsFalseWhenShareDoesNotExist() {
         Portfolio portfolio = new Portfolio();
-        Stock stock = new Stock("Apple", "AAPL", new BigDecimal("100"));
+        Stock stock = new Stock("AAPL", "Apple", new BigDecimal("100"));
+        Share share = new Share(stock, new BigDecimal("10"), new BigDecimal("100"));
 
-        portfolio.addShare(new Share(stock, new BigDecimal("10"), new BigDecimal("100"), null));
-        portfolio.addShare(new Share(stock, new BigDecimal("5"), new BigDecimal("120"), null));
-
-        // Should still be one entry, with merged quantity of 15
-        assertEquals(1, portfolio.getAllShares().size());
-        assertEquals(new BigDecimal("15"), portfolio.getTotalQuantity("AAPL"));
+        assertFalse(portfolio.contains(share));
     }
 
-    /**
-     * Tests that adding shares for different stocks keeps them as separate entries.
-     */
+    /** Tests that getShares(symbol) returns only shares for that symbol. */
     @Test
-    public void addShareKeepsDifferentStocksSeparate() {
+    void getSharesBySymbolFiltersCorrectly() {
         Portfolio portfolio = new Portfolio();
-        Stock apple = new Stock("Apple", "AAPL", new BigDecimal("100"));
-        Stock tesla = new Stock("Tesla", "TSLA", new BigDecimal("200"));
+        Stock apple = new Stock("AAPL", "Apple", new BigDecimal("100"));
+        Stock tesla = new Stock("TSLA", "Tesla", new BigDecimal("200"));
 
-        portfolio.addShare(new Share(apple, new BigDecimal("10"), new BigDecimal("100"), null));
-        portfolio.addShare(new Share(tesla, new BigDecimal("5"), new BigDecimal("200"), null));
+        portfolio.addShare(new Share(apple, new BigDecimal("10"), new BigDecimal("100")));
+        portfolio.addShare(new Share(apple, new BigDecimal("5"), new BigDecimal("110")));
+        portfolio.addShare(new Share(tesla, new BigDecimal("3"), new BigDecimal("200")));
 
-        assertEquals(2, portfolio.getAllShares().size());
+        assertEquals(2, portfolio.getShares("AAPL").size());
+        assertEquals(1, portfolio.getShares("TSLA").size());
     }
 
-    /**
-     * Tests that removeShare correctly removes a share from the portfolio.
-     */
+    /** Tests that getTotalQuantity returns the correct total for a given stock symbol. */
     @Test
-    public void removeShareRemovesShareFromPortfolio() {
+    void getTotalQuantityReturnsCorrectSum() {
         Portfolio portfolio = new Portfolio();
-        Stock stock = new Stock("Apple", "AAPL", new BigDecimal("100"));
-        Share share = new Share(stock, new BigDecimal("10"), new BigDecimal("100"), null);
+        Stock stock = new Stock("AAPL", "Apple", new BigDecimal("100"));
 
-        portfolio.addShare(share);
-        portfolio.removeShare(share);
+        portfolio.addShare(new Share(stock, new BigDecimal("10"), new BigDecimal("100")));
+        portfolio.addShare(new Share(stock, new BigDecimal("7"), new BigDecimal("105")));
 
-        assertEquals(0, portfolio.getAllShares().size());
+        assertEquals(0, portfolio.getTotalQuantity("AAPL").compareTo(new BigDecimal("17")));
     }
 
-    /**
-     * Tests that containsShare returns true when the share exists in the portfolio.
-     */
+    /** Tests that getTotalQuantity returns zero when the symbol is not in the portfolio. */
     @Test
-    public void containsShareReturnsTrueWhenShareExists() {
-        Portfolio portfolio = new Portfolio();
-        Stock stock = new Stock("Apple", "AAPL", new BigDecimal("100"));
-        Share share = new Share(stock, new BigDecimal("10"), new BigDecimal("100"), null);
-
-        portfolio.addShare(share);
-
-        assertTrue(portfolio.containsShare(share));
-    }
-
-    /**
-     * Tests that containsShare returns false when the share does not exist in the portfolio.
-     */
-    @Test
-    public void containsShareReturnsFalseWhenShareDoesNotExist() {
-        Portfolio portfolio = new Portfolio();
-        Stock stock = new Stock("Apple", "AAPL", new BigDecimal("100"));
-        Share share = new Share(stock, new BigDecimal("10"), new BigDecimal("100"), null);
-
-        assertFalse(portfolio.containsShare(share));
-    }
-
-    /**
-     * Tests that getTotalQuantity returns the correct total for a given stock symbol.
-     */
-    @Test
-    public void getTotalQuantityReturnsCorrectSum() {
-        Portfolio portfolio = new Portfolio();
-        Stock stock = new Stock("Apple", "AAPL", new BigDecimal("100"));
-
-        portfolio.addShare(new Share(stock, new BigDecimal("10"), new BigDecimal("100"), null));
-        portfolio.addShare(new Share(stock, new BigDecimal("7"), new BigDecimal("105"), null));
-
-        assertEquals(new BigDecimal("17"), portfolio.getTotalQuantity("AAPL"));
-    }
-
-    /**
-     * Tests that getTotalQuantity returns zero when the symbol is not in the portfolio.
-     */
-    @Test
-    public void getTotalQuantityReturnsZeroWhenSymbolNotFound() {
+    void getTotalQuantityReturnsZeroWhenSymbolNotFound() {
         Portfolio portfolio = new Portfolio();
 
-        assertEquals(BigDecimal.ZERO, portfolio.getTotalQuantity("AAPL"));
+        assertEquals(0, portfolio.getTotalQuantity("AAPL").compareTo(BigDecimal.ZERO));
     }
 
-    /**
-     * Tests that getShareByStock returns the correct share when it exists in the portfolio.
-     */
+    /** Tests that getNetWorth returns zero for an empty portfolio. */
     @Test
-    public void getShareByStockReturnsCorrectShare() {
-        Portfolio portfolio = new Portfolio();
-        Stock stock = new Stock("Apple", "AAPL", new BigDecimal("100"));
-        Share share = new Share(stock, new BigDecimal("10"), new BigDecimal("100"), null);
-
-        portfolio.addShare(share);
-
-        Share result = portfolio.getShareByStock(stock);
-
-        assertNotNull(result);
-        assertEquals("AAPL", result.getStock().getSymbol());
-    }
-
-    /**
-     * Tests that getShareByStock returns null when the stock is not in the portfolio.
-     */
-    @Test
-    public void getShareByStockReturnsNullWhenStockNotFound() {
-        Portfolio portfolio = new Portfolio();
-        Stock stock = new Stock("Apple", "AAPL", new BigDecimal("100"));
-
-        assertNull(portfolio.getShareByStock(stock));
-    }
-
-    /**
-     * Tests that getNetWorth returns zero for an empty portfolio.
-     */
-    @Test
-    public void getNetWorthIsZeroForEmptyPortfolio() {
+    void getNetWorthIsZeroForEmptyPortfolio() {
         Portfolio portfolio = new Portfolio();
 
         assertEquals(0, portfolio.getNetWorth().compareTo(BigDecimal.ZERO));
     }
 
-    /**
-     * Tests that getNetWorth correctly calculates the total value of all shares in the portfolio.
-     */
+    /** Tests that getNetWorth uses the stock's current price, not the purchase price. */
     @Test
-    public void getNetWorthCalculatesTotalValueOfShares() {
+    void getNetWorthUsesCurrentPriceNotPurchasePrice() {
         Portfolio portfolio = new Portfolio();
-        Stock apple = new Stock("Apple", "AAPL", new BigDecimal("100"));
-        Stock tesla = new Stock("Tesla", "TSLA", new BigDecimal("200"));
+        Stock stock = new Stock("AAPL", "Apple", new BigDecimal("100"));
 
-        portfolio.addShare(new Share(apple, new BigDecimal("10"), new BigDecimal("100"), null));
-        portfolio.addShare(new Share(tesla, new BigDecimal("5"), new BigDecimal("200"), null));
+        // Bought at 100, market now at 120
+        portfolio.addShare(new Share(stock, new BigDecimal("10"), new BigDecimal("100")));
+        stock.addNewSalesPrice(new BigDecimal("120"));
 
-        // Apple: 100 * 10 = 1000
-        // Tesla: 200 * 5 = 1000
-        // Total: 2000
-        assertEquals(0, portfolio.getNetWorth().compareTo(new BigDecimal("2000")));
+        // 10 * 120 = 1200, not 10 * 100 = 1000
+        assertEquals(0, portfolio.getNetWorth().compareTo(new BigDecimal("1200")));
     }
 
-    /**
-     * Tests that getAllShares returns a defensive copy so the internal list cannot be modified.
-     */
+    /** Tests that getShares() returns a defensive copy. */
     @Test
-    public void getAllSharesReturnsDefensiveCopy() {
+    void getSharesReturnsDefensiveCopy() {
         Portfolio portfolio = new Portfolio();
-        Stock stock = new Stock("Apple", "AAPL", new BigDecimal("100"));
-        Share share = new Share(stock, new BigDecimal("10"), new BigDecimal("100"), null);
+        Stock stock = new Stock("AAPL", "Apple", new BigDecimal("100"));
+        Share share = new Share(stock, new BigDecimal("10"), new BigDecimal("100"));
         portfolio.addShare(share);
 
-        portfolio.getAllShares().clear();
+        portfolio.getShares().clear();
 
-        // Internal list should still have the share
-        assertEquals(1, portfolio.getAllShares().size());
+        assertEquals(1, portfolio.getShares().size());
     }
 }
