@@ -74,7 +74,7 @@ public class Stock {
      * @return The current sales price of the stock.
      */
     public BigDecimal getSalesPrice() {
-        return prices.get(prices.size() - 1);
+        return prices.getLast();
     }
 
     /**
@@ -124,7 +124,7 @@ public class Stock {
             return BigDecimal.ZERO;
         }
 
-        BigDecimal latest = prices.get(prices.size() - 1);
+        BigDecimal latest = prices.getLast();
         BigDecimal previous = prices.get(prices.size() - 2);
 
         return latest.subtract(previous);
