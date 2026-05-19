@@ -58,8 +58,9 @@ src
 │           └── view           # WindowView (JavaFX)
 └── test
     └── java/edu/ntnu/bidata/prog2
-        ├── calculator         # Calculator unit tests
-        └── model              # Stock, Portfolio, Player tests
+        ├── market             # Exchange tests
+        ├── model              # Stock, Portfolio, Player tests
+        └── transaction        # Purchase, Sale, TransactionArchive tests
 ```
 
 ## Getting Started
@@ -140,7 +141,7 @@ The project follows the **Model-View-Controller (MVC)** pattern combined with th
 | Pattern   | Where                                                               |
 |-----------|---------------------------------------------------------------------|
 | Observer  | `Exchange extends Observable`, `WindowView implements GameObserver` |
-| Factory   | `TransactionFactory` creates Purchase/Sale transactions             |
+| Factory   | `TransactionFactory` creates Purchase transactions                  |
 | Strategy  | `TransactionCalculator` interface (Purchase/Sale variants)          |
 
 File I/O goes through the `StockDataSource` interface, making it easy to add new formats (JSON, XML) without touching 
