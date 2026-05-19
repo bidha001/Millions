@@ -14,7 +14,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class SaleTest {
 
-    /** Helper: gives Alice a single lot of {qty} AAPL at {price}, then bumps the market price to {marketPrice}. */
+    /**
+     * Helper: builds a player with a single lot of the given quantity and purchase price, and the stock's current market price set to {@code marketPrice}.
+     * @param qty the quantity of the lot
+     * @param price the purchase price of the lot
+     * @param marketPrice the current market price of the stock (used for calculating gross and tax)
+     * @return a player with the specified lot and market price set
+     */
     private static Player aliceWithLot(String qty, String price, String marketPrice) {
         Player alice = new Player("Alice", new BigDecimal("100000"));
         Stock stock = new Stock("AAPL", "Apple", new BigDecimal(price));
@@ -23,7 +29,10 @@ class SaleTest {
         return alice;
     }
 
-    /** Tests that a profitable sale of one lot credits gross - commission - tax. */
+    /**
+     * Tests that commit on a profitable sale correctly updates the player's money by gross - commission - tax,
+     * removes the sold shares from the portfolio, and marks the sale as committed.
+     */
     @Test
     void commitProfitableSingleLot() {
         Player alice = aliceWithLot("10", "100", "150");
@@ -39,7 +48,10 @@ class SaleTest {
         assertTrue(sale.isCommitted());
     }
 
-    /** Tests that the post-commit calculator reports the actual recorded totals (the receipt-bug guard). */
+    /**
+     * Tests that after committing a sale, the calculator reports the same gross, commission, tax, and total as were
+     * applied to the player's money.
+     */
     @Test
     void postCommitCalculatorReportsActualTotals() {
         Player alice = aliceWithLot("10", "100", "150");
@@ -55,7 +67,10 @@ class SaleTest {
         assertEquals(0, calc.calculateTotal().compareTo(new BigDecimal("1339.50")));
     }
 
-    /** Tests that a sale at a loss has tax = 0 and credits gross - commission. */
+    /**
+     * Tests that commit on a loss sale correctly updates the player's money by gross - commission (no tax),
+     * removes the sold shares from the portfolio, and marks the sale as committed.
+     */
     @Test
     void commitLossyTaxIsZero() {
         Player alice = aliceWithLot("10", "100", "80");
@@ -70,7 +85,12 @@ class SaleTest {
         assertEquals(0, sale.getCalculator().calculateTax().compareTo(BigDecimal.ZERO));
     }
 
-    /** Tests that a FIFO sale across two lots taxes per lot (a loss does NOT offset a profit). */
+    /**
+     * Tests that when selling shares from multiple lots, the FIFO method is applied to determine the tax basis of each
+     * lot, and the tax is calculated separately for each lot and summed up. In this example, the first lot is sold at
+     * a profit and taxed, while the second lot is sold at a loss and not taxed, resulting in a total tax that reflects
+     * both lots. The final net amount reflects the combined effect of both lots after commission and tax.
+     */
     @Test
     void commitFifoTaxesPerLotIndependently() {
         Player alice = new Player("Alice", new BigDecimal("100000"));
@@ -99,7 +119,10 @@ class SaleTest {
         assertEquals(0, c.calculateTotal().compareTo(new BigDecimal("1412.25")));
     }
 
-    /** Tests that trying to sell more than owned is rejected. */
+    /**
+     * Tests that commit rejects when the player tries to sell more shares than they have in their portfolio, and that
+     * no side effects occur on the player's money or portfolio when this happens.
+     */
     @Test
     void commitRejectsWhenNotEnoughShares() {
         Player alice = aliceWithLot("5", "100", "100");
@@ -111,7 +134,10 @@ class SaleTest {
         assertEquals(0, alice.getPortfolio().getTotalQuantity("AAPL").compareTo(new BigDecimal("5")));
     }
 
-    /** Tests that the same Sale cannot be committed twice. */
+    /**
+     * Tests that commit rejects if called more than once on the same Sale, and that the side effects of the first
+     * commit are preserved exactly once.
+     */
     @Test
     void commitRejectsDoubleCommit() {
         Player alice = aliceWithLot("10", "100", "150");
@@ -123,7 +149,10 @@ class SaleTest {
         assertThrows(IllegalStateException.class, () -> sale.commit(alice));
     }
 
-    /** Tests that a partial sale leaves a remainder lot with the original purchase price. */
+    /**
+     * Tests that when a partial quantity is sold from a lot, the remaining quantity in the lot retains the original purchase price,
+     * and the sale correctly reduces the quantity of the lot while leaving the purchase price unchanged for the remaining shares.
+     */
     @Test
     void partialSaleLeavesRemainderLotWithOriginalPrice() {
         Player alice = aliceWithLot("10", "100", "150");

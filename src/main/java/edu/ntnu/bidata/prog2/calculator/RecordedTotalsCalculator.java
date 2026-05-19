@@ -3,11 +3,8 @@ package edu.ntnu.bidata.prog2.calculator;
 import java.math.BigDecimal;
 
 /**
- * A {@link TransactionCalculator} that simply returns the values it was
- * constructed with. Used by {@link edu.ntnu.bidata.prog2.transaction.Sale}
- * to record the actual gross, commission, tax, and total that the FIFO
- * lot walk produced, so receipts and the transaction table reflect what
- * really happened — not what a single-lot calculator would have predicted.
+ * A transaction calculator that returns recorded totals for gross, commission, tax, and net total.
+ * This implementation assumes that the totals are pre-calculated and provided at construction.
  */
 public final class RecordedTotalsCalculator implements TransactionCalculator {
 

@@ -18,7 +18,10 @@ class PurchaseTest {
         return new Stock("AAPL", "Apple", new BigDecimal("100"));
     }
 
-    /** Tests that a successful commit deducts money, adds the share, and archives. */
+    /**
+     * Tests that commit deducts the correct amount of money, adds the share to the player's portfolio,
+     * and archives the transaction. Also checks that isCommitted() returns true after a successful commit.
+     */
     @Test
     void commitDeductsMoneyAddsShareAndArchives() {
         Player alice = new Player("Alice", new BigDecimal("10000"));
@@ -35,7 +38,10 @@ class PurchaseTest {
         assertTrue(p.isCommitted());
     }
 
-    /** Tests that an insufficient balance rejects the purchase. */
+    /**
+     * Tests that commit rejects when the player has insufficient funds to cover the total cost
+     * of the purchase (gross + commission).
+     */
     @Test
     void commitRejectsWhenInsufficientFunds() {
         Player alice = new Player("Alice", new BigDecimal("500"));
@@ -51,7 +57,10 @@ class PurchaseTest {
         assertFalse(p.isCommitted());
     }
 
-    /** Tests that the same Purchase cannot be committed twice. */
+    /**
+     * Tests that commit rejects if called more than once on the same Purchase, and that the side effects of the first
+     * commit are preserved exactly once.
+     */
     @Test
     void commitRejectsDoubleCommit() {
         Player alice = new Player("Alice", new BigDecimal("10000"));
